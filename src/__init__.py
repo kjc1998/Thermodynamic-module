@@ -1,4 +1,4 @@
-from src.packages import Ideal_Gas
-from .packages import *
+from .packages import ideal_gas
 
-test = Ideal_Gas.IdealGas(P=1, V=8.3125, m=1, T=1)
+test = ideal_gas.IdealGas(P=1.0002, V=8.3125, m=1, T=1)
+print(test.density)
