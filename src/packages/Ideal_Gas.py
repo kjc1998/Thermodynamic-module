@@ -1,4 +1,4 @@
-from .. import imports
+from . import imports
 
 
 class IdealGas():
