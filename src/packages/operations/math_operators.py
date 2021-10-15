@@ -41,11 +41,11 @@ class OperatorFunction():
     def simple_tan(self, target):
         return math.tan(float(target))
 
-    def simple_sqrt(target):
+    def simple_sqrt(self, target):
         return math.sqrt(float(target))
 
-    def simple_log10(target):
+    def simple_log10(self, target):
         return math.log10(float(target))
 
-    def simple_ln(target):
+    def simple_ln(self, target):
         return math.log(float(target))

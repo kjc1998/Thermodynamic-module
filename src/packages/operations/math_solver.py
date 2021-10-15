@@ -1,4 +1,5 @@
 import re
+import time
 from queue import PriorityQueue
 from math_operators import OperatorFunction
 
@@ -6,16 +7,16 @@ from math_operators import OperatorFunction
 class MathSolver():
     ### STANDARD ###
     primary_priority = {"+": 0, "-": 0, "*": 1, "/": 1, "^": 1}
-    secondary_priority = {"(": 2, ")": 2}
+    secondary_priority = {"(": 1, ")": -1}
     ### SPEICAL ###
     special_operator = ["cos", "sin", "tan",
                         "sqrt", "log10", "ln"]
     special_constants = ["pi", "exp"]
     indicator = ["#", "="]
 
-    def __init__(self, string_equation: str, **defined_var_dict):
-        self.main_string = string_equation
+    def __init__(self, string_equation: str, **defined_var_dict: dict):
         self.math_operator = OperatorFunction()
+        self.main_string = string_equation
         self.defined_var_dict = defined_var_dict
 
     def linear_solver(self):
@@ -31,15 +32,68 @@ class MathSolver():
         """
         string_equation = self.string_trimming(self.main_string)
 
-        ### CHECK VALID ###
+        ### VALID EQUATION ###
         check_list = list(
             {**self.primary_priority, **self.secondary_priority}.keys()) + self.special_operator + self.special_constants + self.indicator
         index_var_dict = self.find_variables(
             string_equation, check_list)
         if not self.is_valid_equation(string_equation, index_var_dict):
-            raise Exception("Not enough arguments to resolve equation")
-
+            raise Exception("Not enough arguments to resolve equation.")
+        if string_equation.count("(") != string_equation.count(")"):
+            raise Exception("Number of brackets do not match.")
+        offset = 0
+        for index in list(index_var_dict.keys()):
+            variable = index_var_dict[index]
+            try:
+                new_index = index-offset
+                sub_value = str(self.defined_var_dict[variable])
+                offset += len(variable)-len(sub_value)
+                string_equation = string_equation[:new_index] + \
+                    sub_value + string_equation[new_index+len(variable):]
+            except KeyError:
+                pass
         ### BRACKETS PRIORITY ###
+        sub_index_dict = {}
+        priority = 0
+        for index in range(len(string_equation)):
+            character = string_equation[index]
+            if character in self.secondary_priority.keys():
+                if character == "(":
+                    priority += self.secondary_priority[character]
+                try:
+                    sub_index_dict[priority].append(index)
+                except KeyError:
+                    sub_index_dict[priority] = [index]
+                if character == ")":
+                    priority += self.secondary_priority[character]
+        primary_regex = "\)|\(|"
+        for primary_operator in self.primary_priority:
+            primary_regex += f"\{primary_operator}|"
+        primary_regex = primary_regex[:-1]
+        substituted_dict = {}
+        for _, value in sorted(sub_index_dict.items(), reverse=True):
+            pairs = [value[2*ind:2*ind+2] for ind in range(int(len(value)/2))]
+            for pair in pairs:
+                sub_expression = string_equation[pair[0]:pair[1]+1]
+                for key_sub, value_sub in substituted_dict.items():
+                    sub_expression = sub_expression.replace(
+                        key_sub, value_sub)
+                for special_operator in self.special_operator:
+                    if re.search(f"{special_operator}[0-9]", sub_expression):
+                        filter_regex = f"{special_operator}(.*?)({primary_regex})"
+                        filter_regex = re.compile(filter_regex)
+                        for match in re.findall(filter_regex, sub_expression):
+                            special_function = self.math_operator.sign_to_function[special_operator]
+                            special_ans = str(special_function(match[0]))
+                            substituted_dict[special_operator +
+                                             match[0]] = special_ans
+                            sub_expression = sub_expression.replace(special_operator +
+                                                                    match[0], special_ans)
+                substituted = str(self.simple_solver(sub_expression))
+                substituted_dict[sub_expression] = substituted
+        for initial, sub in substituted_dict.items():
+            string_equation = string_equation.replace(initial, sub)
+        print(string_equation)
 
     def simple_solver(self, sub_string: str):
         """
@@ -48,6 +102,12 @@ class MathSolver():
         """
         # trimming string
         sub_string = self.string_trimming(sub_string)
+        if "(" in sub_string:
+            special_operator = sub_string[:sub_string.find("(")]
+            if special_operator:
+                pass
+                # brackets trimming
+        sub_string = sub_string.replace("(", "").replace(")", "")
         try:
             ans = float(sub_string[:-1])
             return ans
@@ -66,7 +126,7 @@ class MathSolver():
                     else:
                         value += character
                 else:
-                    if value and not target:
+                    if value and not target and not operation:
                         operation = character
                         swap = True
                     elif value and target:
@@ -76,7 +136,11 @@ class MathSolver():
                         operation = character
                         target = ""
                     else:
-                        value += character  # + - sign
+                        # + - sign in front
+                        if swap:
+                            target += character
+                        else:
+                            value += character
             value, operation, target = operation_system.get()[1]
             operator_function = self.math_operator.sign_to_function[operation]
             current_ans = operator_function(value, target)
@@ -84,7 +148,7 @@ class MathSolver():
                 f"{value}{operation}{target}", str(current_ans))
             return self.simple_solver(final_string)
 
-    def string_trimming(self, string_equation):
+    def string_trimming(self, string_equation: str):
         """
         Process equation expressions
         """
@@ -92,6 +156,7 @@ class MathSolver():
         string_equation = string_equation.replace(" ", "")
         string_equation = string_equation.replace("#", "")
         string_equation = string_equation.replace("**", "^")
+        string_equation = re.sub(r"\-\+|\+\-", "-", string_equation)
         string_equation = re.sub(r"\{|\[", "(", string_equation)
         string_equation = re.sub(r"\}|\]", ")", string_equation)
         special_dict = {
@@ -138,7 +203,7 @@ class MathSolver():
         return True
 
 
-test = MathSolver("-2+3/2*3^2# + log{{[a]}} = cos(2)")
+test = MathSolver(
+    "(log{2*{3*[a]}}*sin(b))", b=200, a=45)
 test.linear_solver()
 ans = test.simple_solver(test.string_trimming("+3"))
-print(ans)
