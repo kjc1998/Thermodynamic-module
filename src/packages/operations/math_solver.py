@@ -136,7 +136,7 @@ class MathSolver():
                 # Accept any kind of error
                 return f"({sub_string[:-1]})"
 
-    def resolve_low_prior(self, string_equation):
+    def resolve_low_prior(self, string_equation: str):
         string_function = string_equation.lstrip("(").rstrip(")")
         low_prior_value = min(list(self.primary_priority.values()))
         for key, item in self.primary_priority.items():
@@ -215,7 +215,7 @@ class MathSolver():
                 return False
         return True
 
-    def set_priority(self, string_equation):
+    def set_priority(self, string_equation: str):
         sub_index_dict = {}
         priority = 0
         for index in range(len(string_equation)):
@@ -231,7 +231,7 @@ class MathSolver():
                     priority += self.secondary_priority[character]
         return sub_index_dict
 
-    def get_special(self, substituted_dict, sub_expression):
+    def get_special(self, substituted_dict: dict, sub_expression: str):
         # variable will not be processed due to no bracket regex rule
         primary_regex = "\)|\(|$|"
         for primary_operator in self.primary_priority:
@@ -251,7 +251,7 @@ class MathSolver():
                                                                 match[0], special_ans)
         return substituted_dict, sub_expression
 
-    def substitute_value(self, string_equation, sub_index_dict):
+    def substitute_value(self, string_equation: str, sub_index_dict: dict):
         # regex catching
         substituted_dict = {}
         for _, value in sorted(sub_index_dict.items(), reverse=True):
@@ -267,7 +267,7 @@ class MathSolver():
                 substituted_dict[sub_expression] = substituted
         return substituted_dict
 
-    def twin_solver(self, left_hand, right_hand):
+    def twin_solver(self, left_hand: str, right_hand: str):
         left_hand = left_hand.rstrip(")").lstrip("(")
         right_hand = right_hand.rstrip(")").lstrip("(")
         return None
