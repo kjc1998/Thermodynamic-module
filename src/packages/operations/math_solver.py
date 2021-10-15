@@ -65,14 +65,27 @@ class MathSolver():
         for initial, sub in substituted_dict.items():
             string_equation = string_equation.replace(initial, sub)
         ### REDUCED EQUATION ###
-        reduced_equation = string_equation  # redefinition of string
         try:
-            final_ans = float(self.simple_solver(reduced_equation))
+            solve_special = self.get_special({}, string_equation[:-1])[1]
+            final_ans = float(self.simple_solver(solve_special))
         except:
             # there exists one unknown within the formula
-            print(reduced_equation)
+            reduced_equation = string_equation[:-1]
+            left_hand, right_hand = reduced_equation.split("=")
+            # resolve any lower level special operator
+            left_hand = self.simple_solver(
+                self.get_special({}, left_hand)[1])
+            right_hand = self.simple_solver(
+                self.get_special({}, right_hand)[1])
+            final_ans = self.twin_solver(left_hand, right_hand)
+        return final_ans
 
     def simple_solver(self, sub_string: str):
+        sub_string = self.basic_solver(sub_string)
+        sub_string = self.resolve_low_prior(sub_string)
+        return sub_string
+
+    def basic_solver(self, sub_string: str):
         """
         Recursive function for solving simple equation expressions (substituted)
         i.e. -2+3/2*3 returns 2.5
@@ -119,8 +132,34 @@ class MathSolver():
                 final_string = sub_string.replace(
                     f"{value}{operation}{target}", str(current_ans))
                 return self.simple_solver(final_string)
-            except ValueError:
+            except:
+                # Accept any kind of error
                 return f"({sub_string[:-1]})"
+
+    def resolve_low_prior(self, string_equation):
+        string_function = string_equation.lstrip("(").rstrip(")")
+        low_prior_value = min(list(self.primary_priority.values()))
+        for key, item in self.primary_priority.items():
+            if item != low_prior_value:
+                continue
+            string_split = string_function.split(key)
+            base = ""
+            for string in string_split:
+                current_string = base + string
+                current_ans = self.basic_solver(current_string)
+                if current_ans[0] == "(" and current_ans[-1] == ")":
+                    if base:
+                        base = base.rstrip(key)
+                        string_equation = string_equation.replace(
+                            base, stored_ans)
+                        base = ""
+                else:
+                    stored_ans = current_ans
+                    base += string + key
+            if base and stored_ans:
+                string_equation = string_equation.replace(
+                    base.rstrip(key), stored_ans)
+        return string_equation
 
     def string_trimming(self, string_equation: str):
         """
@@ -192,12 +231,28 @@ class MathSolver():
                     priority += self.secondary_priority[character]
         return sub_index_dict
 
-    def substitute_value(self, string_equation, sub_index_dict):
-        # regex catching
-        primary_regex = "\)|\(|"
+    def get_special(self, substituted_dict, sub_expression):
+        # variable will not be processed due to no bracket regex rule
+        primary_regex = "\)|\(|$|"
         for primary_operator in self.primary_priority:
             primary_regex += f"\{primary_operator}|"
         primary_regex = primary_regex[:-1]
+        for special_operator in self.special_operator:
+            if re.search(f"{special_operator}[0-9]", sub_expression):
+                filter_regex = f"{special_operator}(.*?)({primary_regex})"
+                filter_regex = re.compile(filter_regex)
+                for match in re.findall(filter_regex, sub_expression):
+                    if match[0]:
+                        special_function = self.math_operator.sign_to_function[special_operator]
+                        special_ans = str(special_function(match[0]))
+                        substituted_dict[special_operator +
+                                         match[0]] = special_ans
+                        sub_expression = sub_expression.replace(special_operator +
+                                                                match[0], special_ans)
+        return substituted_dict, sub_expression
+
+    def substitute_value(self, string_equation, sub_index_dict):
+        # regex catching
         substituted_dict = {}
         for _, value in sorted(sub_index_dict.items(), reverse=True):
             pairs = [value[2*ind:2*ind+2] for ind in range(int(len(value)/2))]
@@ -206,23 +261,18 @@ class MathSolver():
                 for key_sub, value_sub in substituted_dict.items():
                     sub_expression = sub_expression.replace(
                         key_sub, value_sub)
-                for special_operator in self.special_operator:
-                    if re.search(f"{special_operator}[0-9]", sub_expression):
-                        filter_regex = f"{special_operator}(.*?)({primary_regex})"
-                        filter_regex = re.compile(filter_regex)
-                        for match in re.findall(filter_regex, sub_expression):
-                            special_function = self.math_operator.sign_to_function[special_operator]
-                            special_ans = str(special_function(match[0]))
-                            substituted_dict[special_operator +
-                                             match[0]] = special_ans
-                            sub_expression = sub_expression.replace(special_operator +
-                                                                    match[0], special_ans)
+                substituted_dict, sub_expression = self.get_special(
+                    substituted_dict, sub_expression)
                 substituted = self.simple_solver(sub_expression[1:-1])
                 substituted_dict[sub_expression] = substituted
         return substituted_dict
 
+    def twin_solver(self, left_hand, right_hand):
+        left_hand = left_hand.rstrip(")").lstrip("(")
+        right_hand = right_hand.rstrip(")").lstrip("(")
+        return None
+
 
 test = MathSolver(
-    "(log{2*{1/2 + a + 2/3}}*sin(b))*EXP*PI = 3", b=200)
-test.linear_solver()
-ans = test.simple_solver(test.string_trimming("+3"))
+    "56/23*2+1+2+22*[exp^P1+123/23 + 9*3]-exp^(9) = 3*2+1")
+answer = test.linear_solver()
