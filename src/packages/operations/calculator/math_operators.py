@@ -8,7 +8,7 @@ class OperatorFunction():
             "-": [self.simple_subtraction, 0],
             "*": [self.simple_product, 1],
             "/": [self.simple_division, 1],
-            "^": [self.simple_power, 1],
+            "^": [self.simple_power, 2],
         }
         self.special_to_function = {
             "sin": self.simple_sin,

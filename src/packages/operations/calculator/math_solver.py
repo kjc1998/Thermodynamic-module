@@ -310,7 +310,7 @@ class MathSolver(OperatorFunction):
 
 
 test = MathSolver(
-    "a^2", a=10, b=10)
+    "a^(2*b)", a=10, b=5)
 test_two = MathSolver(
     "a*b^2 + log(2^(3*(1+2+a/b+c)))*exp*pi^(5/2) + pi^(5/2) = 3", a=10, b=10)
 answer = test.linear_solver()
