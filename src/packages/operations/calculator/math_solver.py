@@ -189,6 +189,7 @@ class MathSolver(OperatorFunction):
         for sign, item in self.primary_priority.items():
             if item != low_prior_value:
                 continue
+            print("low term: ", var_side, value_side)
             string_split = self.__index_substring_split(var_side, sign)
             for index in range(len(string_split)):
                 start_index, string = string_split[index]
@@ -204,37 +205,45 @@ class MathSolver(OperatorFunction):
                 else:
                     var_side = var_side[:start_index] + \
                         len(string)*"#" + var_side[start_index+len(string):]
-                    value_side += self.inverse_operator[sign] + current_ans
-        var_side = self.__strip_trimming(var_side.replace("#", ""))
-        value_side = self.simple_solver(value_side)
+
+                    if current_ans[0] == "-":
+                        inverse_sign = "+"
+                        current_ans = current_ans[1:]
+                    else:
+                        inverse_sign = "-"
+                    value_side += inverse_sign + current_ans
+            var_side = self.__strip_trimming(var_side.replace("#", ""))
+            value_side = self.simple_solver(value_side)
         return var_side, value_side
 
     def __equation_solver(self, var_side, value_side, target_variable):
-        print(var_side, value_side)
+        handle_level = 0
+        test = 0
         while var_side != target_variable:
+            test += 1
+            if test > 6:
+                break
             ### MOVE UNASSOCIATED TERMS ###
             var_side, value_side = self.__move_low_terms(var_side, value_side)
             var_side = self.__strip_trimming(var_side)
 
             ### MOVE TERMS BASED ON LEVEL ###
-            primary_level_dict, secondary_level_dict, variable_level = self.__set_level(
+            primary_level_dict, secondary_level_dict, _ = self.__set_level(
                 var_side, target_variable)
-            if variable_level != 0:
-                var_side, value_side = self.__inverse_operator(
-                    primary_level_dict, secondary_level_dict, var_side, value_side)
-                continue
+            if handle_level in {**primary_level_dict, **secondary_level_dict}.keys():
+                pass
             else:
-                ### FINAL HANDLING ###
-                print(var_side, value_side)
-                var_side, value_side = self.__move_low_terms(
-                    var_side, value_side)
-                print(var_side, value_side)
-                break
+                handle_level = 1
+            print(var_side, value_side)
+            var_side, value_side = self.__inverse_operator(
+                primary_level_dict, secondary_level_dict, var_side, value_side, handle_level)
+            var_side = self.__strip_trimming(var_side)
+            print(var_side, value_side, '\n')
         return None
 
-    def __inverse_operator(self, primary_level_dict, secondary_level_dict, var_side, value_side):
-        if 0 in primary_level_dict.keys():
-            resolve_list = primary_level_dict[0]
+    def __inverse_operator(self, primary_level_dict, secondary_level_dict, var_side, value_side, handle_level):
+        if handle_level in primary_level_dict.keys():
+            resolve_list = primary_level_dict[handle_level]
             for term, end_index, ori_operator, before in resolve_list:
                 flip_operator = self.inverse_operator[ori_operator]
                 if flip_operator in self.primary_priority.keys() and before:
@@ -265,7 +274,7 @@ class MathSolver(OperatorFunction):
                                             len(term)-1] + "#"*(len(term)+1) + var_side[end_index:]
         else:
             # Special Bracket List
-            term, index = secondary_level_dict[0]
+            term, index = secondary_level_dict[handle_level]
             var_side = self.__strip_trimming(var_side[index:])
 
             # value side handling
@@ -286,12 +295,17 @@ class MathSolver(OperatorFunction):
 
     def __set_level(self, string_equation: str, target_variable: str):
         string_equation = self.__string_trimming(string_equation)
-        split_list = list({**self.primary_priority, **
-                          self.secondary_priority}.keys()) + ["#"]  # end indicator
+
+        # sign varaibles are ignored
+        non_low_primary = copy.deepcopy(self.primary_priority)
+        del non_low_primary["+"]
+        del non_low_primary["-"]
+
+        split_list = list(
+            {**non_low_primary, **self.secondary_priority}.keys()) + ["#"]  # end indicator
         special_list = self.special_operator
         term, operator, level = "", "", 0
         before = True  # operator order
-        consecutive_operator = False  # to prevent negative misplacement
 
         lvl_term_index_operator = {}
         lvl_special_index = {}
@@ -302,7 +316,6 @@ class MathSolver(OperatorFunction):
             else:
                 if character in list(self.secondary_priority.keys()):
                     # Bracket Terms (Different Handling)
-                    consecutive_operator = False
                     if term in special_list:
                         # No Two Special Terms on the same Level for one Unknown
                         lvl_special_index[level] = [term, index]
@@ -316,21 +329,20 @@ class MathSolver(OperatorFunction):
                     level += self.secondary_priority[character]
                 elif term:
                     # Primary Operator Terms
-                    consecutive_operator = False
-                    if term == target_variable:  # variable stage
+                    if term == target_variable:     # variable stage
                         before = False
                         operator = character
                         term = ""
                         variable_level = level
                         continue
-                    if before:  # before variable
+                    if before:                      # before variable
                         try:
                             lvl_term_index_operator[level].append(
                                 [term, index, character, before])
                         except KeyError:
                             lvl_term_index_operator[level] = [
                                 [term, index, character, before]]
-                    else:  # after variable
+                    else:                           # after variable
                         try:
                             lvl_term_index_operator[level].append(
                                 [term, index, operator, before])
@@ -340,12 +352,7 @@ class MathSolver(OperatorFunction):
                         operator = character
                 else:
                     # Term Not Defined
-                    if consecutive_operator and character != "#":
-                        term += character
-                        continue
-                    else:
-                        operator = character
-                        consecutive_operator = True
+                    operator = character
                 term = ""
         return dict(sorted(lvl_term_index_operator.items())), dict(sorted(lvl_special_index.items())), variable_level
 
@@ -389,12 +396,11 @@ class MathSolver(OperatorFunction):
         Remove covered brackets for better clarity
         Also removed first instance of "+" sign
         """
-        if string_expression[0] == "(" and string_expression[-1] == ")":
-            if string_expression[1] == "+":
-                return string_expression[2:-1]
-            return string_expression[1:-1]
-        if string_expression[0] == "+":
-            return string_expression[1:]
+        while (string_expression[0] == "(" and string_expression[-1] == ")") or string_expression[0] == "+":
+            if string_expression[0] == "(" and string_expression[-1] == ")":
+                string_expression = string_expression[1:-1]
+            if string_expression[0] == "+":
+                string_expression = string_expression[1:]
         return string_expression
 
     def __variable_search(self, string_equation: str, check_list: list):
@@ -510,5 +516,5 @@ class MathSolver(OperatorFunction):
 answer = test.linear_solver()
 print(answer)'''
 test_two = MathSolver(
-    "+a*b^2 + sin((2^(3*(1+2+a/b-2*c^(3^2)+2)))*exp*pi^(5/2)+((a/10)))*(-(2^10)) - pi^(5/2) = trial", a=10, b=10, trial=14)
+    "+a*b^2 + sin((2^(3*(1+2+a/b-2^3*c^((((1+3^2))))+2)))*exp*pi^(5/2)+((a/10)))*(-(2^10)) - pi^(5/2) = trial", a=10, b=10, trial=14)
 answer_two = test_two.linear_solver()
