@@ -8,7 +8,7 @@ class OperatorFunction():
             "-": [self.simple_subtraction, 0],
             "*": [self.simple_product, 1],
             "/": [self.simple_division, 1],
-            "^": [self.simple_power, 2],
+            "^": [self.simple_power, 2]
         }
         self.special_to_function = {
             "sin": self.simple_sin,
@@ -17,8 +17,10 @@ class OperatorFunction():
             "sqrt": self.simple_sqrt,
             "log10": self.simple_log10,
             "ln": self.simple_ln,
+            "sin-1": self.inverse_sin,
+            "cos-1": self.inverse_cos,
+            "tan-1": self.inverse_tan,
         }
-
         ### STANDARD ###
         self.primary_to_function = {k: v[0]
                                     for k, v in primary_declaration.items()}
@@ -29,6 +31,21 @@ class OperatorFunction():
         ### SPEICAL ###
         self.special_operator = list(self.special_to_function.keys())
         self.special_constants = {"pi": math.pi, "exp": math.e}
+
+        ### INVERSE ###
+        self.inverse_operator = {
+            "+": "-",
+            "-": "+",
+            "*": "/",
+            "/": "*",
+            "sin": "sin-1",
+            "cos": "cos-1",
+            "tan": "tan-1",
+            "^": "^_target_-term",  # special primary
+            "sqrt": "^_target_2",
+            "log10": "^_10_target",
+            "ln": "^_exp_target",
+        }
 
     def simple_product(self, ori, target):
         return float(ori)*float(target)
@@ -44,6 +61,12 @@ class OperatorFunction():
 
     def simple_power(self, ori, target):
         return float(ori)**float(target)
+
+    def simple_inverse(self, ori, target):
+        return float(ori)**(1/float(target))
+
+    def inverse_log(self, ori, target):
+        return math.log10(float(target))/math.log10(float(ori))
 
     def simple_sin(self, target):
         return math.sin(float(target))
@@ -62,3 +85,12 @@ class OperatorFunction():
 
     def simple_ln(self, target):
         return math.log(float(target))
+
+    def inverse_sin(self, target):
+        return math.asin(float(target))
+
+    def inverse_cos(self, target):
+        return math.acos(float(target))
+
+    def inverse_tan(self, target):
+        return math.atan(float(target))
