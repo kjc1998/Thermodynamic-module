@@ -2,4 +2,6 @@
 
 ## Types of Solver
 
-1. Linear
+1. [Linear](#linear)
+
+# Linear
