@@ -2,4 +2,6 @@
 
 A simple thermodynamic module
 
-[Read Documentation for Math Solver](#https://github.com/kjc1998/Thermodynamic-Module#how-to-use-solver)
+# Side Packages
+
+[Math Solver](https://github.com/kjc1998/Thermodynamic-Module#how-to-use-solver)
