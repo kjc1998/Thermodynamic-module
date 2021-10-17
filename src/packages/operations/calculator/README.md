@@ -2,6 +2,11 @@
 
 ## Types of Solver
 
-1. [Linear](#linear)
+1. [Calculator](#calculator)
+2. [Linear](#linear)
+
+# Calculator
+
+1. Begin with ...
 
 # Linear
