@@ -1,4 +1,5 @@
 import math
+import numpy as np
 
 
 class OperatorFunction():
@@ -46,6 +47,9 @@ class OperatorFunction():
             "log10": "^_10_target",
             "ln": "^_exp_target",
         }
+
+    def value_wrapper(self, value):
+        return np.format_float_positional(value, trim='-')
 
     def simple_product(self, ori, target):
         return float(ori)*float(target)
