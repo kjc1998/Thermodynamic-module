@@ -1,5 +1,5 @@
-# How to Use Solver:
+# How to Use Solver
 
-## Types of Solver:
+## Types of Solver
 
 1. Linear
