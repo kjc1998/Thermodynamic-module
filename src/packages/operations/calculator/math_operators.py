@@ -41,7 +41,7 @@ class OperatorFunction():
             "sin": "sin-1",
             "cos": "cos-1",
             "tan": "tan-1",
-            "^": "^_target_-term",  # special primary
+            "^": "^_target_1/term",  # special primary
             "sqrt": "^_target_2",
             "log10": "^_10_target",
             "ln": "^_exp_target",

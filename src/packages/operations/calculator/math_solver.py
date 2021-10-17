@@ -189,12 +189,11 @@ class MathSolver(OperatorFunction):
         for sign, item in self.primary_priority.items():
             if item != low_prior_value:
                 continue
-            print("low term: ", var_side, value_side)
             string_split = self.__index_substring_split(var_side, sign)
             for index in range(len(string_split)):
                 start_index, string = string_split[index]
                 try:
-                    if string_split[index-1][1][-1] in self.primary_priority.keys():
+                    if string_split[index-1][1][-1] in {**self.primary_priority, **self.secondary_priority}.keys():
                         # operation followed by signed number
                         continue
                 except IndexError:
@@ -218,17 +217,17 @@ class MathSolver(OperatorFunction):
 
     def __equation_solver(self, var_side, value_side, target_variable):
         handle_level = 0
-        test = 0
+        # replace negative variable to -1*variable
+        var_side = var_side.replace(
+            f"-{target_variable}", f"-1*{target_variable}")
         while var_side != target_variable:
-            test += 1
-            if test > 6:
-                break
             ### MOVE UNASSOCIATED TERMS ###
+            print(var_side, value_side)
             var_side, value_side = self.__move_low_terms(var_side, value_side)
             var_side = self.__strip_trimming(var_side)
 
             ### MOVE TERMS BASED ON LEVEL ###
-            primary_level_dict, secondary_level_dict, _ = self.__set_level(
+            primary_level_dict, secondary_level_dict = self.__set_level(
                 var_side, target_variable)
             if handle_level in {**primary_level_dict, **secondary_level_dict}.keys():
                 pass
@@ -239,39 +238,44 @@ class MathSolver(OperatorFunction):
                 primary_level_dict, secondary_level_dict, var_side, value_side, handle_level)
             var_side = self.__strip_trimming(var_side)
             print(var_side, value_side, '\n')
-        return None
+        return float(value_side)
 
     def __inverse_operator(self, primary_level_dict, secondary_level_dict, var_side, value_side, handle_level):
         if handle_level in primary_level_dict.keys():
-            resolve_list = primary_level_dict[handle_level]
-            for term, end_index, ori_operator, before in resolve_list:
-                flip_operator = self.inverse_operator[ori_operator]
-                if flip_operator in self.primary_priority.keys() and before:
-                    # Primary Operation Before Variable
-                    value_side += flip_operator+term
-                    value_side = self.simple_solver(value_side)
-                    var_side = var_side[:end_index -
-                                        len(term)] + "#"*(len(term)+1) + var_side[end_index+1:]
-                elif flip_operator in self.primary_priority.keys() and not before:
-                    # Primary Operation After Variable
-                    value_side += flip_operator+term
-                    value_side = self.simple_solver(value_side)
-                    var_side = var_side[:end_index -
-                                        len(term)-1] + "#"*(len(term)+1) + var_side[end_index:]
-                else:
-                    # Special Inverse Operator
-                    flip_string = flip_operator.replace(
-                        "target", value_side).replace("term", term)
-                    if before:
-                        value_side = self.inverse_log(term, value_side)
+            priority_keys = sorted(
+                list(primary_level_dict[handle_level].keys()))
+            for priority_key in priority_keys:
+                resolve_list = primary_level_dict[handle_level][priority_key]
+                for term, end_index, ori_operator, before in resolve_list:
+                    flip_operator = self.inverse_operator[ori_operator]
+                    if flip_operator in self.primary_priority.keys() and before:
+                        # Primary Operation Before Variable
+                        value_side += flip_operator+term
+                        value_side = self.simple_solver(value_side)
                         var_side = var_side[:end_index -
                                             len(term)] + "#"*(len(term)+1) + var_side[end_index+1:]
-                    else:
-                        operation_key, ori, target = flip_string.split("_")
-                        value_side = self.primary_to_function[operation_key](
-                            ori, target)
+                    elif flip_operator in self.primary_priority.keys() and not before:
+                        # Primary Operation After Variable
+                        value_side += flip_operator+term
+                        value_side = self.simple_solver(value_side)
                         var_side = var_side[:end_index -
                                             len(term)-1] + "#"*(len(term)+1) + var_side[end_index:]
+                    else:
+                        # Special Inverse Operator
+                        flip_string = flip_operator.replace(
+                            "target", value_side).replace("term", term)
+                        if before:
+                            value_side = self.inverse_log(term, value_side)
+                            var_side = var_side[:end_index -
+                                                len(term)] + "#"*(len(term)+1) + var_side[end_index+1:]
+                        else:
+                            # special primary indicated in math solver
+                            operation_key, ori, target = flip_string.split("_")
+                            target = self.simple_solver(target)
+                            value_side = self.primary_to_function[operation_key](
+                                ori, target)
+                            var_side = var_side[:end_index -
+                                                len(term)-1] + "#"*(len(term)+1) + var_side[end_index:]
         else:
             # Special Bracket List
             term, index = secondary_level_dict[handle_level]
@@ -290,6 +294,7 @@ class MathSolver(OperatorFunction):
             except ValueError:
                 value_side = self.special_to_function[flip_string](
                     value_side)
+        # Replacement at the End to Avoid Index Clashing
         var_side = var_side.replace("#", "")
         return str(var_side), str(value_side)
 
@@ -320,41 +325,58 @@ class MathSolver(OperatorFunction):
                         # No Two Special Terms on the same Level for one Unknown
                         lvl_special_index[level] = [term, index]
                     elif term:
+                        priority = self.primary_priority[operator]
                         try:
-                            lvl_term_index_operator[level].append(
+                            lvl_term_index_operator[level][priority].append(
                                 [term, index, operator, before])
                         except KeyError:
-                            lvl_term_index_operator[level] = [
-                                [term, index, operator, before]]
+                            try:
+                                lvl_term_index_operator[level][priority] = [
+                                    [term, index, operator, before]]
+                            except KeyError:
+                                lvl_term_index_operator[level] = {}
+                                lvl_term_index_operator[level][priority] = [
+                                    [term, index, operator, before]]
                     level += self.secondary_priority[character]
                 elif term:
                     # Primary Operator Terms
-                    if term == target_variable:     # variable stage
+                    if target_variable in term:     # variable stage
                         before = False
                         operator = character
                         term = ""
-                        variable_level = level
                         continue
                     if before:                      # before variable
+                        priority = self.primary_priority[character]
                         try:
-                            lvl_term_index_operator[level].append(
+                            lvl_term_index_operator[level][priority].append(
                                 [term, index, character, before])
                         except KeyError:
-                            lvl_term_index_operator[level] = [
-                                [term, index, character, before]]
+                            try:
+                                lvl_term_index_operator[level][priority] = [
+                                    [term, index, character, before]]
+                            except KeyError:
+                                lvl_term_index_operator[level] = {}
+                                lvl_term_index_operator[level][priority] = [
+                                    [term, index, character, before]]
                     else:                           # after variable
+                        priority = self.primary_priority[operator]
                         try:
-                            lvl_term_index_operator[level].append(
+                            lvl_term_index_operator[level][priority].append(
                                 [term, index, operator, before])
                         except KeyError:
-                            lvl_term_index_operator[level] = [
-                                [term, index, operator, before]]
+                            try:
+                                lvl_term_index_operator[level][priority] = [
+                                    [term, index, operator, before]]
+                            except KeyError:
+                                lvl_term_index_operator[level] = {}
+                                lvl_term_index_operator[level][priority] = [
+                                    [term, index, operator, before]]
                         operator = character
                 else:
                     # Term Not Defined
                     operator = character
                 term = ""
-        return dict(sorted(lvl_term_index_operator.items())), dict(sorted(lvl_special_index.items())), variable_level
+        return dict(sorted(lvl_term_index_operator.items())), dict(sorted(lvl_special_index.items()))
 
     def __twin_solver(self, left_hand: str, right_hand: str, target_variable: str):
         """Function to resolve unknown"""
@@ -510,11 +532,17 @@ class MathSolver(OperatorFunction):
                 orig_sub_dict[sub_expression] = final_sub
         return orig_sub_dict
 
+    def __logging(self, var_side: str, value_side: str):
+        """
+        Tracking Steps Done in Solving Equation
+        """
+        pass
+
 
 '''test = MathSolver(
     "1+2+2/3-exp*2*-(2*a)^3", a=1)
 answer = test.linear_solver()
 print(answer)'''
 test_two = MathSolver(
-    "+a*b^2 + sin((2^(3*(1+2+a/b-2^3*c^((((1+3^2))))+2)))*exp*pi^(5/2)+((a/10)))*(-(2^10)) - pi^(5/2) = trial", a=10, b=10, trial=14)
+    "+a*b^2 + sin((2^(3*(1-1-1-1-1-11+2+a/b-2^3-c^((-3*2))+3^2+2)))*exp*pi^(5/2)+((a/10)))*(-(2^10)) - pi^(5/2) = trial", a=10, b=10, trial=14)
 answer_two = test_two.linear_solver()
