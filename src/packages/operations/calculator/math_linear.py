@@ -3,7 +3,7 @@ import re
 import warnings
 import copy
 from queue import PriorityQueue
-from math_operators import OperatorFunction
+from .math_operators import OperatorFunction
 
 
 class LinearSolver(OperatorFunction):
@@ -15,8 +15,14 @@ class LinearSolver(OperatorFunction):
     def __init__(self, string_equation: str, **defined_var_dict: dict):
         super().__init__()
         self.main_string = string_equation
+        for i in list(defined_var_dict.keys()):
+            if defined_var_dict[i] == None:
+                del defined_var_dict[i]  # Redundant
+            else:
+                self.i = defined_var_dict[i]
         self.defined_var_dict = {
             k.lower(): v for k, v in defined_var_dict.items()}
+        self.answer_dict = copy.deepcopy(self.defined_var_dict)
         self.log = ""
         self.answer = self.linear_solver()
 
@@ -283,6 +289,7 @@ class LinearSolver(OperatorFunction):
             else:
                 self.__linear_log_entry(var_side + "\t=\t" + value_side)
                 previous_var, previous_value = var_side, value_side
+        self.answer_dict[target_variable] = float(value_side)
         return float(value_side)
 
     def __linear_move_inverse_terms(self, primary_level_dict, secondary_level_dict, var_side, value_side, handle_level):
@@ -608,3 +615,12 @@ class LinearSolver(OperatorFunction):
         Tracking Steps Done in Solving Equation
         """
         self.log += string_equation + "\n"
+
+
+""" TEST """
+# test = LinearSolver(
+#     "a^b^c", a=10, b=10, c=10)
+# print(test.answer)
+# test_two = LinearSolver(
+#     "+a*b^2 + ln(exp)*sin(pi/2)*sin((2^(3*(1-1-1-1-1-11+2+a/b-2^3-c^((-3*2))+3^2+2)))*exp*pi^(5/2)+((a/10)))*(-(2^10)) - pi^-(5/2) = trial", a=10, b=10, trial=14)
+# print(test_two.answer)

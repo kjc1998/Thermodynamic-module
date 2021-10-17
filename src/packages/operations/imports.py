@@ -2,5 +2,5 @@
 Necessary Imports File
 """
 
-import general_functions
-from .calculator.math_solver import MathSolver
+from . import general_functions
+from .calculator.math_linear import LinearSolver

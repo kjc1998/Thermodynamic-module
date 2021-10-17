@@ -21,18 +21,25 @@ class IdealGas():
         if [P, V, T].count(None) > 1:
             raise Exception("Too many unknown variables.")
         elif None in [P, V, T]:
-            P, V, T = self.calculate_variable([P, V, T], m=m, R=R)
+            solver_instance = imports.LinearSolver(
+                "P*V=m*R*T", P=P, V=V, m=m, R=R, T=T)
 
-        # variable setups
-        self.pressure = P
-        self.volume = V
-        self.temperature = T
-        self.mass = m
-        self.molar = R
+            # lower case
+            self.pressure = solver_instance.answer_dict["p"]
+            self.volume = solver_instance.answer_dict["v"]
+            self.temperature = solver_instance.answer_dict["t"]
+            self.mass = solver_instance.answer_dict["m"]
+            self.molar = solver_instance.answer_dict["r"]
+        else:
+            self.pressure = P
+            self.volume = V
+            self.temperature = T
+            self.mass = m
+            self.molar = R
         self.density = self.mass / self.volume
 
         # default to 3 s.f. accurate
-        if imports.round_to_sf(P*V, sf) == imports.round_to_sf(m*R*T, sf):
+        if imports.general_functions.round_to_sf(self.pressure*self.volume, sf) == imports.general_functions.round_to_sf(self.mass*self.molar*self.temperature, sf):
             pass
         else:
             raise Exception(
