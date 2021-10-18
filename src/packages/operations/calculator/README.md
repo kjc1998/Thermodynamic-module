@@ -11,13 +11,13 @@ Mathematical operations were conducted based on priority level set as shown in t
 | /           | Division        | 1           |
 | ^           | Exponent        | 2           |
 
-```
-<div style='background-color: gray'>
-  <h4>A string that constitutes of multiple operators e.g. `2*3 + 3/4^2 -1` will go through the following steps: <h4/>
-    <b>`2*3 + 3/4^2 -1`</b> -> <b>`2*3 + 3/16 -1`</b> -> <b>`6 + 0.1875 -1`</b> -> <b>`6 + 0.1875 -1`</b>
-  <h5>Answer: 5.1875<h5/>
-<div/>
-```
+A string that constitutes of multiple operators e.g. `2*3 + 3/4^2 -1` will go through the following steps:
+`2*3 + 3/4^2 -1` -> `2*3 + 3/16 -1` -> `6 + 0.1875 -1` -> `6 + 0.1875 -1`
+Answer: 5.1875
+
+
+---
+
 
 Additionally, bracket terms will yield higher priority and is ranked based on how nested the terms are, e.g.
 
