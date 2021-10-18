@@ -18,9 +18,9 @@ class OperatorFunction():
             "sqrt": self.simple_sqrt,
             "log10": self.simple_log10,
             "ln": self.simple_ln,
-            "sin-1": self.inverse_sin,
-            "cos-1": self.inverse_cos,
-            "tan-1": self.inverse_tan,
+            "asin": self.inverse_sin,
+            "acos": self.inverse_cos,
+            "atan": self.inverse_tan,
         }
         ### STANDARD ###
         self.primary_to_function = {k: v[0]
@@ -39,9 +39,13 @@ class OperatorFunction():
             "-": "+",
             "*": "/",
             "/": "*",
-            "sin": "sin-1",
-            "cos": "cos-1",
-            "tan": "tan-1",
+            # Trigonometry Functions
+            "sin": "asin",
+            "asin": "sin",
+            "cos": "acos",
+            "acos": "cos",
+            "tan": "atan",
+            "atan": "tan",
             "^": "^_target_1/term",  # special primary
             "sqrt": "^_target_2",
             "log10": "^_10_target",

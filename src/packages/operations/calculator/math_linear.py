@@ -261,7 +261,7 @@ class LinearSolver(OperatorFunction):
                     base.rstrip(key), stored_ans)
         return string_equation
 
-    def __linear_index_substring_split(self, sub_string: str, sign):
+    def __linear_index_substring_split(self, sub_string: str, sign: str):
         """
         Split by sign, returning [index, terms]
         """
@@ -316,7 +316,7 @@ class LinearSolver(OperatorFunction):
             value_side = self.linear_simple_solver(value_side)
         return var_side, value_side
 
-    def __linear_equation_solver(self, var_side, value_side, target_variable):
+    def __linear_equation_solver(self, var_side: str, value_side: str, target_variable: str):
         """
         Function to Converge Unknown Via Iterative Operations
         """
@@ -349,10 +349,10 @@ class LinearSolver(OperatorFunction):
         self.results[target_variable] = float(value_side)
         return float(value_side)
 
-    def __linear_move_inverse_terms(self, primary_level_dict, secondary_level_dict, var_side, value_side, handle_level):
+    def __linear_move_inverse_terms(self, primary_level_dict: dict, secondary_level_dict: dict, var_side: str, value_side: str, handle_level: int):
         """
         Perform Inverse of Operations to Value Side
-        e.g. "sin(...) = 1" yields "...  = sin-1(1)"
+        e.g. "sin(...) = 1" yields "...  = asin(1)"
 
         Primary Operators are prioritised over Special Functions
         Lower Priority Operators will be Prioritised e.g. "*"(priority: 1) or "/"(priority: 1) > "^" (priority: 2)
