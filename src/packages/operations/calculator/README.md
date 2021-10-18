@@ -2,7 +2,7 @@
 
 ## Key Points
 
-Mathematical operations were conducted based on priority level set as shown in the table below: <br/> <br/>
+Mathematical operations were conducted based on priority level set as shown in the table below: <br/>
 | Operator | Descriptions | Priority |
 | ----------- | --------------- | ----------- |
 | + | Addition | 0 |
@@ -13,7 +13,7 @@ Mathematical operations were conducted based on priority level set as shown in t
 
 <br/>
 
-Special Constants & Functions : <br/> <br/>
+Special Constants & Functions : <br/>
 | Symbol | Descriptions | Type |
 | ----------- | --------------- | --- |
 | exp | Exponential | Constant |
