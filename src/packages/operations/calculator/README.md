@@ -4,7 +4,7 @@
 ## How to Use
 Download the two .py files and import math_linear.py to use the solvers
 
-**(Installable packages - WIP)**
+*(Installable packages - WIP)*
 
 
 ## Key Points
