@@ -15,13 +15,13 @@ A string that constitutes of multiple operators e.g. `2*3 + 3/4^2 -1` will go th
 
 `2*3 + 3/4^2 -1` -> `2*3 + 3/16 -1` -> `6 + 0.1875 -1` -> `6 + 0.1875 -1`
 
-**Answer: 5.1875** <br /><br />
+1.  **Answer: 5.1875** <br /><br />
 
-Additionally, bracket terms will yield higher priority and is ranked based on how nested the terms are, e.g.
+    Additionally, bracket terms will yield higher priority and is ranked based on how nested the terms are, e.g.
 
-`2^2+(2*(1+2))` -> `2^2+(2*3)` -> `2^2+6` -> `4+6`
+    `2^2+(2*(1+2))` -> `2^2+(2*3)` -> `2^2+6` -> `4+6`
 
-**Answer = 10**
+    **Answer = 10**
 
 ## Types of Solver
 
