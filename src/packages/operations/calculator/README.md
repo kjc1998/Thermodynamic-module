@@ -38,6 +38,8 @@ Mathematical operations were conducted based on priority level set as shown in t
 
 # Calculator
 
+## Intructions :
+
 1. Begin with ...
 
 # Linear
