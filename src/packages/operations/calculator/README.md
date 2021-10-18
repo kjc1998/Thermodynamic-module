@@ -1,5 +1,12 @@
 # Mathematical Solvers
 
+
+## How to Use
+Download the two .py files and import math_linear.py to use the solvers
+
+**(Installable packages - WIP)**
+
+
 ## Key Points
 
 Mathematical operations were conducted based on priority level set as shown in the table below: <br/>
