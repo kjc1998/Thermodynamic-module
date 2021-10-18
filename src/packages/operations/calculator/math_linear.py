@@ -1,9 +1,13 @@
 from math import e
 import re
+import time
 import warnings
 import copy
 from queue import PriorityQueue
-from .math_operators import OperatorFunction
+try:
+    from .math_operators import OperatorFunction
+except ImportError:
+    from math_operators import OperatorFunction
 
 
 class LinearSolver(OperatorFunction):
@@ -37,6 +41,7 @@ class LinearSolver(OperatorFunction):
             variable = {x = 1, y = 2}
             Automatically detect unkown z variable and solve it
         """
+        self.__linear_log_entry("SOLVING:\n"+self.main_string+"\n")
         string_equation = self.__linear_string_trimming(self.main_string)
         self.__linear_log_entry("Trimming:\n"+string_equation+"\n")
 
@@ -92,15 +97,17 @@ class LinearSolver(OperatorFunction):
         except:
             reduced_equation = string_equation[:-1]
             left_hand, right_hand = reduced_equation.split("=")
-            left_hand = self.linear_simple_solver(
-                self.__linear_special_operator_value({}, left_hand)[1])
-            right_hand = self.linear_simple_solver(
-                self.__linear_special_operator_value({}, right_hand)[1])
-            self.__linear_log_entry(left_hand + "\t=\t" + right_hand)
+            left_hand_special = self.__linear_special_operator_value(
+                {}, left_hand)[1]
+            left_hand = self.linear_simple_solver(left_hand_special)
+            right_hand_special = self.__linear_special_operator_value(
+                {}, right_hand)[1]
+            right_hand = self.linear_simple_solver(right_hand_special)
 
             ### SOLVE UNKNOWN ###
             final_ans = self.__linear_twin_solver(
                 left_hand, right_hand, unknown_var)
+        self.__linear_log_entry("Final Answer:\n"+str(final_ans)+"\n")
         return final_ans
 
     def linear_simple_solver(self, sub_string: str):
@@ -120,8 +127,11 @@ class LinearSolver(OperatorFunction):
         """
         Recursive function for solving simple equation expressions (substituted)
         i.e. -2+3/2*3 returns 2.5
-        Strings with Unknown will be left ignored
+        Strings with Unknown will be left ignored unless there exists higher priority terms withing the string
+        "^" are treated differently (allows bracket terms)
         """
+        power_bracket = False
+        power_bracket_regex = "\((|\-|\+)(\d+\.\d+|\d+\.|\.\d+|\d+)\)\^(\d+\.\d+|\d+\.|\.\d+|\d+)"
         sub_string = self.__linear_string_trimming(sub_string)
         try:
             ans = float(sub_string[:-1])
@@ -129,42 +139,84 @@ class LinearSolver(OperatorFunction):
             return ans
         except ValueError:
             try:
-                value, operation, target = "", "", ""
-                swap = False
                 operation_system = PriorityQueue()
-                for index in range(len(sub_string)):
-                    character = sub_string[index]
-                    if character == "#":
-                        operation_system.put((-1*self.primary_priority[operation], [
-                            value, operation, target]))
-                    elif character not in self.primary_priority.keys():
-                        if swap:
-                            target += character
-                        else:
-                            value += character
-                    else:
-                        if value and not target and not operation:
-                            operation = character
-                            swap = True
-                        elif value and target:
-                            operation_system.put((-1*self.primary_priority[operation], [
-                                value, operation, target]))
-                            value = target
-                            operation = character
-                            target = ""
-                        else:
-                            # + - sign in front
+                if re.search(power_bracket_regex, sub_string):
+                    # taking first instance of such occurence
+                    power_bracket = True
+                    match_object = re.search(power_bracket_regex, sub_string)
+                    matched_string = match_object[0]
+                    value, target = matched_string.split("^")
+                    value = value[1:-1]
+                    operation = "^"
+                    index = match_object.span()[-1]
+                    prio_level = -1*self.primary_priority[operation]
+                else:
+                    sub_string = self.__linear_strip_trimming(sub_string[:-1])
+                    sub_string = self.__linear_string_trimming(sub_string)
+
+                    value, operation, target = "", "", ""
+                    swap = False
+                    for index in range(len(sub_string)):
+                        character = sub_string[index]
+                        if character == "#":
+                            operation_system.put(
+                                (-1*self.primary_priority[operation], [index, value, operation, target]))
+                        elif character not in self.primary_priority.keys():
                             if swap:
                                 target += character
                             else:
                                 value += character
-                value, operation, target = operation_system.get()[1]
-                operator_function = self.primary_to_function[operation]
-                current_ans = operator_function(value, target)
-                final_string = sub_string.replace(
-                    f"{value}{operation}{target}", str(current_ans))
-                return self.linear_simple_solver(final_string)
+                        else:
+                            if value and not target and not operation:
+                                operation = character
+                                swap = True
+                            elif value and target:
+                                operation_system.put(
+                                    (-1*self.primary_priority[operation], [index, value, operation, target]))
+                                value = target
+                                operation = character
+                                target = ""
+                            else:
+                                # "+" "-" sign in front
+                                if swap:
+                                    target += character
+                                else:
+                                    value += character
+
+                    prio_level, [index, value, operation,
+                                 target] = operation_system.get()
+                    if operation == "^":
+                        # must be absolute value if it goes through here
+                        value = value.lstrip("-")
+                # Priority Level Recrusion Only
+                to_loop_group = [[index, value, operation, target]]
+                while operation_system.qsize() > 0:
+                    prio_level_check, [index_check, value_check,
+                                       operation_check, target_check] = operation_system.get()
+                    if prio_level_check == prio_level:
+                        to_loop_group.append(
+                            [index_check, value_check, operation_check, target_check])
+                    else:
+                        break
+                for index, value, operation, target in to_loop_group:
+                    try:
+                        if power_bracket:
+                            len_operation = len(matched_string)
+                            power_bracket = False
+                        else:
+                            len_operation = len(f"{value}{operation}{target}")
+                        operator_function = self.primary_to_function[operation]
+                        current_ans = operator_function(value, target)
+                        # Replacing Based on Index In String
+                        final_string = sub_string[:index-len_operation] + \
+                            str(current_ans)+sub_string[index:]
+                        return self.linear_simple_solver(final_string)
+                    except ValueError:
+                        power_bracket = False
+                        continue
+                return f"({sub_string[:-1]})"
             except (KeyError, ValueError):
+                # Can't Be Solved
                 return f"({sub_string[:-1]})"
             except Exception as e:
                 # Other Kinds of Mathematical Error
@@ -182,7 +234,7 @@ class LinearSolver(OperatorFunction):
             if item != low_prior_value:
                 continue
             string_split = string_function.split(key)
-            base = ""
+            base = key
             for index in range(len(string_split)):
                 string = string_split[index]
                 try:
@@ -194,15 +246,16 @@ class LinearSolver(OperatorFunction):
                 current_string = base + string
                 current_ans = self.__linear_basic_solver(current_string)
                 if current_ans[0] == "(" and current_ans[-1] == ")":
-                    if base:
+                    if base != key:
                         base = base.rstrip(key)
                         string_equation = string_equation.replace(
                             base, stored_ans)
-                        base = ""
+                        base = key
                 else:
-                    stored_ans = current_ans
+                    stored_ans = key + \
+                        current_ans if current_ans[0] != "-" else current_ans
                     base += string + key
-            if base and stored_ans:
+            if base != key and stored_ans:
                 string_equation = string_equation.replace(
                     base.rstrip(key), stored_ans)
         return string_equation
@@ -211,12 +264,14 @@ class LinearSolver(OperatorFunction):
         """
         Split by sign, returning [index, terms]
         """
+        sub_string = self.__linear_string_trimming(sub_string)
+
         string_split = []
         term = ""
         start_index = 0
-        for index in range(len(sub_string+"#")):
-            character = (sub_string+"#")[index]
-            if character in [sign, "#"] and term:
+        for index in range(len(sub_string)):
+            character = sub_string[index]
+            if character in ([sign] + self.indicator) and term:
                 string_split.append([start_index, term])
                 term, start_index = sign, index
             else:
@@ -246,7 +301,8 @@ class LinearSolver(OperatorFunction):
                     continue
                 else:
                     var_side = var_side[:start_index] + \
-                        len(string)*"#" + var_side[start_index+len(string):]
+                        self.indicator[0]*len(string) + \
+                        var_side[start_index+len(string):]
 
                     if current_ans[0] == "-":
                         inverse_sign = "+"
@@ -254,7 +310,8 @@ class LinearSolver(OperatorFunction):
                     else:
                         inverse_sign = "-"
                     value_side += inverse_sign + current_ans
-            var_side = self.__linear_strip_trimming(var_side.replace("#", ""))
+            var_side = self.__linear_strip_trimming(
+                var_side.replace(self.indicator[0], ""))
             value_side = self.linear_simple_solver(value_side)
         return var_side, value_side
 
@@ -277,7 +334,6 @@ class LinearSolver(OperatorFunction):
             else:
                 self.__linear_log_entry(var_side + "\t=\t" + value_side)
                 previous_var, previous_value = var_side, value_side
-
             ### MOVE LOWEST LEVEL TERMS ###
             primary_level_dict, secondary_level_dict = self.__linear_set_level(
                 var_side, target_variable)
@@ -312,13 +368,13 @@ class LinearSolver(OperatorFunction):
                         value_side += flip_operator+term
                         value_side = self.linear_simple_solver(value_side)
                         var_side = var_side[:end_index -
-                                            len(term)] + "#"*(len(term)+1) + var_side[end_index+1:]
+                                            len(term)] + self.indicator[0]*(len(term)+1) + var_side[end_index+1:]
                     elif flip_operator in self.primary_priority.keys() and not before:
                         # Primary Operation After Variable
                         value_side += flip_operator+term
                         value_side = self.linear_simple_solver(value_side)
                         var_side = var_side[:end_index -
-                                            len(term)-1] + "#"*(len(term)+1) + var_side[end_index:]
+                                            len(term)-1] + self.indicator[0]*(len(term)+1) + var_side[end_index:]
                     else:
                         # Power Inverse Operator (Special Treatment)
                         flip_string = flip_operator.replace(
@@ -327,7 +383,7 @@ class LinearSolver(OperatorFunction):
                             # Resolved using Log
                             value_side = self.inverse_log(term, value_side)
                             var_side = var_side[:end_index -
-                                                len(term)] + "#"*(len(term)+1) + var_side[end_index+1:]
+                                                len(term)] + self.indicator[0]*(len(term)+1) + var_side[end_index+1:]
                         else:
                             # Resolved using Inverse Power
                             operation_key, ori, target = flip_string.split("_")
@@ -335,7 +391,7 @@ class LinearSolver(OperatorFunction):
                             value_side = self.primary_to_function[operation_key](
                                 ori, target)
                             var_side = var_side[:end_index -
-                                                len(term)-1] + "#"*(len(term)+1) + var_side[end_index:]
+                                                len(term)-1] + self.indicator[0]*(len(term)+1) + var_side[end_index:]
         else:
             # Special Bracket Operators
             term, index = secondary_level_dict[handle_level]
@@ -355,7 +411,7 @@ class LinearSolver(OperatorFunction):
                     value_side)
 
         # Replacing "#" to "" to Avoid Index Clashing
-        var_side = var_side.replace("#", "")
+        var_side = var_side.replace(self.indicator[0], "")
         return str(var_side), str(value_side)
 
     def __linear_set_level(self, string_equation: str, target_variable: str):
@@ -371,7 +427,7 @@ class LinearSolver(OperatorFunction):
         del non_low_primary["-"]
 
         split_list = list(
-            {**non_low_primary, **self.secondary_priority}.keys()) + ["#"]      # As Indicator
+            {**non_low_primary, **self.secondary_priority}.keys()) + self.indicator      # As Indicator
 
         special_list = self.special_operator
         term, operator, level = "", "", 0
@@ -389,19 +445,23 @@ class LinearSolver(OperatorFunction):
                         # No Two Special Terms on the same Level for one Unknown
                         lvl_special_index[level] = [term, index]
                     elif term:
-                        # Term will be a Primary Operator, e.g. " ... ^( ..."
-                        priority = self.primary_priority[operator]
-                        try:
-                            lvl_term_index_operator[level][priority].append(
-                                [term, index, operator, before])
-                        except KeyError:
+                        if target_variable in term:     # Variable Term
+                            before = False
+                            term = ""
+                        else:
+                            # Term will be a Primary Operator, e.g. " ... ^( ..."
+                            priority = self.primary_priority[operator]
                             try:
-                                lvl_term_index_operator[level][priority] = [
-                                    [term, index, operator, before]]
+                                lvl_term_index_operator[level][priority].append(
+                                    [term, index, operator, before])
                             except KeyError:
-                                lvl_term_index_operator[level] = {}
-                                lvl_term_index_operator[level][priority] = [
-                                    [term, index, operator, before]]
+                                try:
+                                    lvl_term_index_operator[level][priority] = [
+                                        [term, index, operator, before]]
+                                except KeyError:
+                                    lvl_term_index_operator[level] = {}
+                                    lvl_term_index_operator[level][priority] = [
+                                        [term, index, operator, before]]
                     level += self.secondary_priority[character]
                 elif term:
                     if target_variable in term:     # Variable Term
@@ -607,6 +667,11 @@ class LinearSolver(OperatorFunction):
                     orig_sub_dict, sub_expression)
                 final_sub = self.linear_simple_solver(
                     self.__linear_strip_trimming(sub_expression))
+                try:
+                    if string_equation[pair[1]+1] == "^":
+                        final_sub = f"({final_sub})"
+                except IndexError:
+                    pass
                 orig_sub_dict[sub_expression] = final_sub
         return orig_sub_dict
 
@@ -619,8 +684,14 @@ class LinearSolver(OperatorFunction):
 
 """ TEST """
 # test = LinearSolver(
-#     "a^b^c", a=10, b=10, c=10)
-# print(test.answer)
+#     "1-1-1-1-1-11+2+10/10-2^3")
+# test.linear_get_log()
+#
 # test_two = LinearSolver(
-#     "+a*b^2 + ln(exp)*sin(pi/2)*sin((2^(3*(1-1-1-1-1-11+2+a/b-2^3-c^((-3*2))+3^2+2)))*exp*pi^(5/2)+((a/10)))*(-(2^10)) - pi^-(5/2) = trial", a=10, b=10, trial=14)
-# print(test_two.answer)
+#    "+a*b^2 + ln(exp)*sin(pi/2)*sin((2^(3*(-1-1-1-11-2^4+2+c^2^2^2+3^2+2)))*exp*pi^(5/2)+((a/10)))*(-(2^10)) - pi^-(5/2) = trial", a=10, b=10, trial=14)
+# test_two.linear_get_log()
+#
+# test_three = LinearSolver("(-2)^3")
+# test_three.linear_get_log()
+# test_four = LinearSolver("-3.142^-2.5")
+# test_four.linear_get_log()
