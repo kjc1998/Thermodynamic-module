@@ -1,6 +1,8 @@
 # How to Use Solver
 
 ## Operator Priority
+
+Mathematical Operations were conducted based on priority level set as shown in the table below:
 | Operator    | Descriptions    | Priority    |
 | ----------- | --------------- | ----------- |
 | +           | Addition        | 0           |
