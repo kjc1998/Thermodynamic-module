@@ -13,13 +13,9 @@ Mathematical operations were conducted based on priority level set as shown in t
 
 A string that constitutes of multiple operators e.g. `2*3 + 3/4^2 -1` will go through the following steps:
 
-`2*3 + 3/16 -1`
+`2*3 + 3/16 -1` -> `6 + 0.1875 -1` -> `6 + 0.1875 -1`
 
-`6 + 0.1875 -1`
-
-`6 + 0.1875 -1`
-
-## Ans: 5.1875
+### ANS: 5.1875
 
 ## Types of Solver
 
