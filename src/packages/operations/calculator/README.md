@@ -2,7 +2,7 @@
 
 ## Operator Priority
 
-Mathematical Operations were conducted based on priority level set as shown in the table below:
+Mathematical operations were conducted based on priority level set as shown in the table below:
 | Operator    | Descriptions    | Priority    |
 | ----------- | --------------- | ----------- |
 | +           | Addition        | 0           |
@@ -11,6 +11,7 @@ Mathematical Operations were conducted based on priority level set as shown in t
 | /           | Division        | 1           |
 | ^           | Power           | 2           |
 
+`<addr>` 
 
 ## Types of Solver
 
