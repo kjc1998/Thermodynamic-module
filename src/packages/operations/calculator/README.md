@@ -1,7 +1,7 @@
 # How to Use Solver
 
 ## Operator Priority
-| Syntax      | Description |
+| Symbol      | Priority |
 | ----------- | ----------- |
 | Header      | Title       |
 | Paragraph   | Text        |
