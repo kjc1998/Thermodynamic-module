@@ -18,10 +18,17 @@ string_equation = "2*3 + 3/4^2 -1"
 
 """
 In Between Calculations ...
-"2*3 + 3/16 -1" -> "6 + 0.1875 -1" -> "6 + 0.1875 -1"
+"2*3 + 3/4^2 -1" -> "2*3 + 3/16 -1" -> "6 + 0.1875 -1" -> "6 + 0.1875 -1"
 """
 
 Answer = 5.1875
+````
+Additionally, bracket terms will yield higher priority and is ranked based on how nested the terms are
+````python
+string_equation = "2^2+(2*(1+2))"
+# -> "2^2+(2*3)" -> "2^2+6" -> "4+6"
+
+Answer = 10
 ````
 
 ## Types of Solver
