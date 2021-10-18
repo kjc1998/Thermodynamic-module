@@ -24,6 +24,8 @@ Additionally, bracket terms will yield higher priority and is ranked based on ho
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;**Answer = 10**
 
+### *Note*: &nbsp;&nbsp;&nbsp; `-2^2` will yield **-4**, where as `(-2)^2` gives **4**
+
 ## Types of Solver
 
 1. [Calculator](#calculator)
