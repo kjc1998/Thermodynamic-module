@@ -26,7 +26,7 @@ class LinearSolver(OperatorFunction):
                 self.i = defined_var_dict[i]
         self.defined_var_dict = {
             k.lower(): v for k, v in defined_var_dict.items()}
-        self.answer_dict = copy.deepcopy(self.defined_var_dict)
+        self.results = copy.deepcopy(self.defined_var_dict)
         self.log = ""
         self.answer = self.linear_solver()
 
@@ -346,7 +346,7 @@ class LinearSolver(OperatorFunction):
             else:
                 self.__linear_log_entry(var_side + "\t=\t" + value_side)
                 previous_var, previous_value = var_side, value_side
-        self.answer_dict[target_variable] = float(value_side)
+        self.results[target_variable] = float(value_side)
         return float(value_side)
 
     def __linear_move_inverse_terms(self, primary_level_dict, secondary_level_dict, var_side, value_side, handle_level):

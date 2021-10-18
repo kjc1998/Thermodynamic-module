@@ -1,6 +1,9 @@
 """
 Necessary Imports File
 """
-
-from . import general_functions
-from .calculator.math_linear import LinearSolver
+try:
+    from . import general_functions
+    from .calculator.math_linear import LinearSolver
+except ImportError:
+    import general_functions
+    from calculator.math_linear import LinearSolver

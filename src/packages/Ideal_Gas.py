@@ -1,4 +1,7 @@
-from .operations import imports
+try:
+    from .operations import imports
+except ImportError:
+    from operations import imports
 
 
 class IdealGas():
@@ -25,11 +28,11 @@ class IdealGas():
                 "P*V=m*R*T", P=P, V=V, m=m, R=R, T=T)
 
             # lower case
-            self.pressure = solver_instance.answer_dict["p"]
-            self.volume = solver_instance.answer_dict["v"]
-            self.temperature = solver_instance.answer_dict["t"]
-            self.mass = solver_instance.answer_dict["m"]
-            self.molar = solver_instance.answer_dict["r"]
+            self.pressure = solver_instance.results["p"]
+            self.volume = solver_instance.results["v"]
+            self.temperature = solver_instance.results["t"]
+            self.mass = solver_instance.results["m"]
+            self.molar = solver_instance.results["r"]
         else:
             self.pressure = P
             self.volume = V
