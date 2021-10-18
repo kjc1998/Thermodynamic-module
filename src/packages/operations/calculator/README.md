@@ -3,13 +3,13 @@
 ## Operator Priority
 
 Mathematical operations were conducted based on priority level set as shown in the table below: <br/> <br/>
-| Operator    | Descriptions    | Priority    |
+| Operator | Descriptions | Priority |
 | ----------- | --------------- | ----------- |
-| +           | Addition        | 0           |
-| -           | Subtraction     | 0           |
-| *           | Multiplication  | 1           |
-| /           | Division        | 1           |
-| ^           | Exponent        | 2           | 
+| + | Addition | 0 |
+| - | Subtraction | 0 |
+| \* | Multiplication | 1 |
+| / | Division | 1 |
+| ^ | Exponent | 2 |
 
 <br/>
 
@@ -25,7 +25,7 @@ Mathematical operations were conducted based on priority level set as shown in t
 >
 > **Answer = 10**
 
-> ### *Note*&nbsp;&nbsp;:
+> ### _Note_&nbsp;&nbsp;:
 >
 > `-2^2` will yield **-4**, where as `(-2)^2` gives **4**
 
@@ -40,6 +40,19 @@ Mathematical operations were conducted based on priority level set as shown in t
 
 ## Intructions :
 
-1. Begin with ...
+1. Initialised `LinearSolver` instance:
+
+```python
+test = LinearSolver("1-1-1-1-1-11+2+10/10-2^3")
+# call results
+print(test.answer) # -19
+```
+
+2. To show done to reach that stage, one simply use `linear_get_log` method
+
+```python
+# print out steps
+test.linear_get_log()
+```
 
 # Linear
