@@ -1,10 +1,14 @@
 # How to Use Solver
 
 ## Operator Priority
-| Symbol      | Priority |
-| ----------- | ----------- |
-| Header      | Title       |
-| Paragraph   | Text        |
+| Operator    | Descriptions    | Priority    |
+| ----------- | --------------- | ----------- |
+| +           | Addition        | 0           |
+| -           | Subtraction     | 0           |
+| *           | Multiplication  | 1           |
+| /           | Division        | 1           |
+| ^           | Power           | 2           |
+
 
 ## Types of Solver
 
