@@ -12,17 +12,17 @@ Mathematical operations were conducted based on priority level set as shown in t
 | ^           | Exponent        | 2           | 
 
 <br/> <br/>
-A string that constitutes of multiple operators e.g. `2*3 + 3/4^2 -1` will go through the following steps
+> A string that constitutes of multiple operators e.g. `2*3 + 3/4^2 -1` will go through the following steps
+>
+> `2*3 + 3/4^2 -1` -> `2*3 + 3/16 -1` -> `6 + 0.1875 -1` -> `6 + 0.1875 -1`
+>
+> **Answer = 5.1875**
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`2*3 + 3/4^2 -1` -> `2*3 + 3/16 -1` -> `6 + 0.1875 -1` -> `6 + 0.1875 -1`
-
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;**Answer = 5.1875**
-
-Additionally, bracket terms will yield higher priority and is ranked based on how nested the terms are
-
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`2^2+(2*(1+2))` -> `2^2+(2*3)` -> `2^2+6` -> `4+6`
-
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;**Answer = 10**
+> Additionally, bracket terms will yield higher priority and is ranked based on how nested the terms are
+>
+> `2^2+(2*(1+2))` -> `2^2+(2*3)` -> `2^2+6` -> `4+6`
+>
+> **Answer = 10**
 
 > ### *Note*&nbsp;&nbsp;:
 >
