@@ -44,7 +44,8 @@ Special Constants & Functions : <br/>
 
 > ### _Note_&nbsp;&nbsp;:
 >
-> `-2^2` will yield **-4**, where as `(-2)^2` gives **4**
+> * `-2^2` will yield **-4**, where as `(-2)^2` gives **4**
+> * `2^2^3` does not give any priority to any two values, i.e. **(`4^3` or `2^8`)** <br/>Keep it as a rule of thumb to always define exponent terms using brackets
 
 ## Types of Solver
 
@@ -104,7 +105,7 @@ print(test.answer) # 7.5 (automatically detects 'a' is the unknown variable)
 test.linear_get_log()
 ```
 
-> _Note_ :
+> ### _Note_ :
 >
 > To get the string output instead, use:
 >
