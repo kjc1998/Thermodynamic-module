@@ -681,20 +681,3 @@ class LinearSolver(OperatorFunction):
         Tracking Steps Done in Solving Equation
         """
         self.log += string_equation + "\n"
-
-
-""" TEST """
-'''
-test = LinearSolver(
-    "1-1-1-1-1-11+2+10/10-2^3")
-test.linear_get_log()
-
-test_two = LinearSolver(
-    "+a*b^2 + ln(exp)*sin(pi/2)*sin((2^(3*(-1-1-1-11-2^4+2+c^2^2^2+3^2+2)))*exp*pi^(5/2)+((a/10)))*(-2^10) - pi^-(5/2) +-2^3= trial", a=10, b=10, trial=18)
-test_two.linear_get_log()
-
-test_three = LinearSolver("(-2)^3")
-test_three.linear_get_log()
-test_four = LinearSolver("-3.142^-2.5")
-test_four.linear_get_log()
-'''

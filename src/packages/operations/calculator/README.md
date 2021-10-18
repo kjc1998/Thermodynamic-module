@@ -97,7 +97,17 @@ print(test.results)
 print(test.answer) # 7.5 (automatically detects 'a' is the unknown variable)
 ```
 
+3. Similar to calculator, printing out step-by-step calculation can be done via `linear_get_log()` method.
+
 ```python
 # print out steps
 test.linear_get_log()
 ```
+
+> _Note_ :
+>
+> To get the string output instead, use:
+>
+> ```python
+> print(test.log) # string output similar to what's shown for linear_get_log()
+> ```
