@@ -1,6 +1,10 @@
 # How to Use Solver
 
 ## Operator Priority
+| Syntax      | Description |
+| ----------- | ----------- |
+| Header      | Title       |
+| Paragraph   | Text        |
 
 ## Types of Solver
 
