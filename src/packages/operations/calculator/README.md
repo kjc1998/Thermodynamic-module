@@ -1,4 +1,4 @@
-# How to Use Solver
+# Mathematical Solvers
 
 ## Operator Priority
 
