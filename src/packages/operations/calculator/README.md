@@ -1,5 +1,7 @@
 # How to Use Solver
 
+## Operator Priority
+
 ## Types of Solver
 
 1. [Calculator](#calculator)
