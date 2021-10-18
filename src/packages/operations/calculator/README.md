@@ -34,6 +34,8 @@ Mathematical operations were conducted based on priority level set as shown in t
 1. [Calculator](#calculator)
 2. [Linear](#linear)
 
+---
+
 # Calculator
 
 1. Begin with ...
