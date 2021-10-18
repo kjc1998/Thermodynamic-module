@@ -13,11 +13,11 @@ Mathematical operations were conducted based on priority level set as shown in t
 
   <html>
     <div style='background-color: gray'>
-    ### A string that constitutes of multiple operators e.g. `2*3 + 3/4^2 -1` will go through the following steps:
+      ### A string that constitutes of multiple operators e.g. `2*3 + 3/4^2 -1` will go through the following steps:
 
-    `2*3 + 3/4^2 -1` -> `2*3 + 3/16 -1` -> `6 + 0.1875 -1` -> `6 + 0.1875 -1`
+      `2*3 + 3/4^2 -1` -> `2*3 + 3/16 -1` -> `6 + 0.1875 -1` -> `6 + 0.1875 -1`
 
-    ##### Answer: 5.1875
+      ##### Answer: 5.1875
     <div/>
   <html/>
 
