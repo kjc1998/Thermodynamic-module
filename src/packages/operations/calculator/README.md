@@ -11,17 +11,11 @@ Mathematical operations were conducted based on priority level set as shown in t
 | /           | Division        | 1           |
 | ^           | Exponent        | 2           |
 
-````python
-# A string that constitutes of multiple operators e.g. "2*3 + 3/4^2 -1" will go through the following steps:
+A string that constitutes of multiple operators e.g. `2*3 + 3/4^2 -1` will go through the following steps:
 
-string_equation = "2*3 + 3/4^2 -1"
+`2*3 + 3/4^2 -1` -> `2*3 + 3/16 -1` -> `6 + 0.1875 -1` -> `6 + 0.1875 -1`
 
-"""
-In Between Calculations ...
-"2*3 + 3/4^2 -1" -> "2*3 + 3/16 -1" -> "6 + 0.1875 -1" -> "6 + 0.1875 -1"
-"""
-
-Answer = 5.1875
+#####Answer: 5.1875
 ````
 Additionally, bracket terms will yield higher priority and is ranked based on how nested the terms are
 ````python
