@@ -21,7 +21,7 @@ class LinearSolver(OperatorFunction):
         self.main_string = string_equation
         for i in list(defined_var_dict.keys()):
             if defined_var_dict[i] == None:
-                del defined_var_dict[i]  # Redundant
+                del defined_var_dict[i]
             else:
                 self.i = defined_var_dict[i]
         self.defined_var_dict = {
@@ -135,13 +135,14 @@ class LinearSolver(OperatorFunction):
         sub_string = self.__linear_string_trimming(sub_string)
         try:
             ans = float(sub_string[:-1])
-            ans = self.value_wrapper(ans)  # non-scientific term
+            # Non-Scientific Form
+            ans = self.value_wrapper(ans)
             return ans
         except ValueError:
             try:
                 operation_system = PriorityQueue()
                 if re.search(power_bracket_regex, sub_string):
-                    # taking first instance of such occurence
+                    # Taking First Instance
                     power_bracket = True
                     match_object = re.search(power_bracket_regex, sub_string)
                     matched_string = match_object[0]
@@ -186,9 +187,9 @@ class LinearSolver(OperatorFunction):
                     prio_level, [index, value, operation,
                                  target] = operation_system.get()
                     if operation == "^":
-                        # must be absolute value if it goes through here
+                        # Absolute Only (Otherwise Handled in Regex Condition)
                         value = value.lstrip("-")
-                # Priority Level Recrusion Only
+                # Recursion to be Performed on same Priority Values
                 to_loop_group = [[index, value, operation, target]]
                 while operation_system.qsize() > 0:
                     prio_level_check, [index_check, value_check,
@@ -207,12 +208,12 @@ class LinearSolver(OperatorFunction):
                             len_operation = len(f"{value}{operation}{target}")
                         operator_function = self.primary_to_function[operation]
                         current_ans = operator_function(value, target)
-                        # Replacing Based on Index In String
                         final_string = sub_string[:index-len_operation] + \
                             str(current_ans)+sub_string[index:]
                         return self.linear_simple_solver(final_string)
                     except ValueError:
                         power_bracket = False
+                        # Non-Solvable Terms, skipping to next Equal Level Term
                         continue
                 return f"({sub_string[:-1]})"
             except (KeyError, ValueError):
@@ -292,7 +293,7 @@ class LinearSolver(OperatorFunction):
                 start_index, string = string_split[index]
                 try:
                     if string_split[index-1][1][-1] in {**self.primary_priority, **self.secondary_priority}.keys():
-                        # operation followed by signed values
+                        # Operation followed by Signed Terms
                         continue
                 except IndexError:
                     pass
@@ -683,15 +684,17 @@ class LinearSolver(OperatorFunction):
 
 
 """ TEST """
-# test = LinearSolver(
-#     "1-1-1-1-1-11+2+10/10-2^3")
-# test.linear_get_log()
-#
-# test_two = LinearSolver(
-#    "+a*b^2 + ln(exp)*sin(pi/2)*sin((2^(3*(-1-1-1-11-2^4+2+c^2^2^2+3^2+2)))*exp*pi^(5/2)+((a/10)))*(-(2^10)) - pi^-(5/2) = trial", a=10, b=10, trial=14)
-# test_two.linear_get_log()
-#
-# test_three = LinearSolver("(-2)^3")
-# test_three.linear_get_log()
-# test_four = LinearSolver("-3.142^-2.5")
-# test_four.linear_get_log()
+'''
+test = LinearSolver(
+    "1-1-1-1-1-11+2+10/10-2^3")
+test.linear_get_log()
+
+test_two = LinearSolver(
+    "+a*b^2 + ln(exp)*sin(pi/2)*sin((2^(3*(-1-1-1-11-2^4+2+c^2^2^2+3^2+2)))*exp*pi^(5/2)+((a/10)))*(-2^10) - pi^-(5/2) +-2^3= trial", a=10, b=10, trial=18)
+test_two.linear_get_log()
+
+test_three = LinearSolver("(-2)^3")
+test_three.linear_get_log()
+test_four = LinearSolver("-3.142^-2.5")
+test_four.linear_get_log()
+'''
