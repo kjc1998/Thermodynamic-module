@@ -309,11 +309,12 @@ class LinearSolver(OperatorFunction):
                         # Check Term Sign
                         if term[-1] in removed_list:
                             term = term[:-1]
-                        answer = self.__linear_basic_solver(term)
-                        answer = f"+{answer}" if answer[0] != "-" else answer
-                        replace_list.append([start_index, term, answer])
-                        term = ""
-                        start_index = index
+                        if term:
+                            answer = self.__linear_basic_solver(term)
+                            answer = f"+{answer}" if answer[0] != "-" else answer
+                            replace_list.append([start_index, term, answer])
+                            term = ""
+                            start_index = index
             else:
                 if not term:
                     start_index = index
@@ -390,6 +391,10 @@ class LinearSolver(OperatorFunction):
         # Replacing Negative Unknown to -1*Unknown for Consistent Operation
         var_side = var_side.replace(
             f"-{target_variable}", f"-1*{target_variable}")
+        # Replacing Negative Specials to -1*Special
+        for special_function in self.special_to_function.keys():
+            var_side = var_side.replace(
+                f"-{special_function}", f"-1*{special_function}")
         self.__linear_log_entry(var_side + "\t=\t" + value_side)
         while var_side != target_variable:
             ### MOVE UNASSOCIATED TERMS ###
@@ -698,7 +703,6 @@ class LinearSolver(OperatorFunction):
                     priority += self.secondary_priority[character]
         return sub_index_dict
 
-    # NEED FIX REGEX
     def __linear_special_operator_value(self, sub_expression: str, ori_sub_dict: dict):
         """
         Function to execute Special Operations
@@ -754,3 +758,27 @@ class LinearSolver(OperatorFunction):
         Tracking Steps Done in Solving Equation
         """
         self.log += string_equation + "\n"
+
+
+test_one = LinearSolver(
+    "1-1-1-1-1-11+2+10/10-2^3")
+test_one.linear_get_log()
+
+test_two = LinearSolver(
+    "+a*b^2 + ln(exp)*sin(pi/2)*sin((2^(3*(-1-1-1-11-2^4+2+c^2^2^2+3^2+2)))*exp*pi^(5/2)+((a/10)))*(-2^10) - pi^-(5/2) +-2^3= trial", a=10, b=10, trial=18)
+test_two.linear_get_log()
+
+test_three = LinearSolver("(-2)^3")
+test_three.linear_get_log()
+
+test_four = LinearSolver("-3.142^-2.5")
+test_four.linear_get_log()
+
+test_five = LinearSolver("ln(exp^2)*cos(a) = 1.5")
+test_five.linear_get_log()
+
+test_six = LinearSolver("ln(exp^2)*acos(0)*a*exp*pi = 1.5*exp*pi*atan(30)")
+test_six.linear_get_log()
+
+test_seven = LinearSolver("2^(-asin(a)) = 2")
+test_seven.linear_get_log()
