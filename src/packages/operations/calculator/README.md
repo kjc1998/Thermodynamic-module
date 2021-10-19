@@ -1,11 +1,10 @@
 # Mathematical Solvers
 
-
 ## How to Use
+
 Download the two .py files and import math_linear.py to use the solvers
 
-*(Installable packages - WIP)*
-
+_(Installable packages - WIP)_
 
 ## Key Points
 
@@ -51,8 +50,8 @@ Special Constants & Functions : <br/>
 
 > ### _Note_&nbsp;&nbsp;:
 >
-> * `-2^2` will yield **-4**, where as `(-2)^2` gives **4**
-> * `2^2^3` does not give any priority to any two values, i.e. **(`4^3` or `2^8`)** <br/>Keep it as a rule of thumb to always define exponent terms using brackets
+> - `-2^2` will yield **-4**, where as `(-2)^2` gives **4**
+> - `2^2^3` does not give any priority to any two values, i.e. **(`4^3` or `2^8`)** <br/>Keep it as a rule of thumb to always define exponent terms using brackets
 
 ## Types of Solver
 
@@ -92,7 +91,7 @@ test.linear_get_log()
 test = LinearSolver("1 + (2/3)*a + (b-c^2) = 3", b=1, c=2)
 ```
 
-> _Rules for Variables_ :
+> ### _Rules for Variables_ :
 >
 > - Variables mustn't be named using any of the special constant/ operators listed in the table above
 > - Variable names can consist of digits (but ideally avoid doing so)
