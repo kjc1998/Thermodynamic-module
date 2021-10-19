@@ -94,7 +94,8 @@ test = LinearSolver("1 + (2/3)*a + (b-c^2) = 3", b=1, c=2)
 
 > _Rules for Variables_ :
 >
-> - Variables musn't be named using any of the special constant/ operators listed in the table above
+> - Variables mustn't be named using any of the special constant/ operators listed in the table above
+> - Variable names can consist of digits (but ideally avoid doing so)
 > - Output variables will always be in lower case settings (keep it to lower case definition to avoid confusion)
 
 2. Running the above line will automatically call the solver. Results will be output in dictionary format as such:
