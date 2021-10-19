@@ -1,9 +1,12 @@
 from math import e
 import re
 import time
+from typing_extensions import Final
 import warnings
 import copy
 from queue import PriorityQueue
+
+from numpy import character
 try:
     from .math_operators import OperatorFunction
 except ImportError:
@@ -58,27 +61,15 @@ class LinearSolver(OperatorFunction):
             raise Exception("Number of brackets do not match.")
 
         ### SUBSTITUTE VARIABLES ###
-        offset = 0
-        for index in list(index_var_dict.keys()):
-            variable = index_var_dict[index]
-            try:
-                new_index = index-offset
-                sub_value = str(self.defined_var_dict[variable])
-                offset += len(variable)-len(sub_value)
-                string_equation = string_equation[:new_index] + \
-                    sub_value + string_equation[new_index+len(variable):]
-            except KeyError:
-                # Unknown Variable
-                pass
+        string_equation = self.__linear_sub_variables(
+            string_equation, index_var_dict)
         self.__linear_log_entry(
             "Variable Substitution:\n"+string_equation+"\n")
 
-        ### SUB SPECIAL CONSTANT ###
-        for special_constant in list(self.special_constants.keys()):
-            string_equation = string_equation.replace(
-                special_constant, str(self.special_constants[special_constant]))
-        self.__linear_log_entry("Special Constants Substitution:\n" +
-                                string_equation+"\n")
+        ### SUBSTITUTE SPECIAL CONSTANT ###
+        string_equation = self.__linear_sub_special(string_equation)
+        self.__linear_log_entry(
+            "Special Constants Substitution:\n" + string_equation+"\n")
 
         ### RESOLVE BRACKETS PRIORITY ###
         sub_index_dict = self.__linear_set_priority(string_equation)
@@ -92,16 +83,16 @@ class LinearSolver(OperatorFunction):
         ### REDUCED EQUATION ###
         try:
             solve_special = self.__linear_special_operator_value(
-                {}, string_equation[:-1])[1]
+                string_equation[:-1], {})[0]
             final_ans = float(self.linear_simple_solver(solve_special))
         except:
             reduced_equation = string_equation[:-1]
             left_hand, right_hand = reduced_equation.split("=")
             left_hand_special = self.__linear_special_operator_value(
-                {}, left_hand)[1]
+                left_hand, {})[0]
             left_hand = self.linear_simple_solver(left_hand_special)
             right_hand_special = self.__linear_special_operator_value(
-                {}, right_hand)[1]
+                right_hand, {})[0]
             right_hand = self.linear_simple_solver(right_hand_special)
 
             ### SOLVE UNKNOWN ###
@@ -123,6 +114,53 @@ class LinearSolver(OperatorFunction):
         print(self.log)
 
     ### PRIVATE METHODS ###
+    def __linear_sub_variables(self, string_equation: str, ori_index_var_dict: dict):
+        """
+        Function to Substitute Variables based on Index
+        """
+        string_equation = self.__linear_string_trimming(string_equation)
+
+        index_var_dict = copy.deepcopy(ori_index_var_dict)
+        offset = 0
+        for index in list(index_var_dict.keys()):
+            variable = index_var_dict[index]
+            try:
+                new_index = index-offset
+                sub_value = str(self.defined_var_dict[variable])
+                offset += len(variable)-len(sub_value)
+                string_equation = string_equation[:new_index] + \
+                    sub_value + string_equation[new_index+len(variable):]
+            except KeyError:
+                # Unknown Variable
+                pass
+        return string_equation
+
+    def __linear_sub_special(self, string_equation: str):
+        """
+        Function to Substitute Special Constants based on Index
+        """
+        string_equation = self.__linear_string_trimming(string_equation)
+        special_check_list = list(
+            {**self.primary_priority, **self.secondary_priority}.keys()) + self.indicator
+        special_constant_list = []
+        term = ""
+        for index in range(len(string_equation)):
+            character = string_equation[index]
+            if character not in special_check_list:
+                term += character
+            else:
+                if term in self.special_constants:
+                    special_constant_list.append([term, index])
+                term = ""
+        offset = 0
+        for term, index in special_constant_list:
+            new_index = index - offset
+            special_term = str(self.special_constants[term])
+            offset += len(term)-len(special_term)
+            string_equation = string_equation[:new_index -
+                                              len(term)]+special_term+string_equation[new_index:]
+        return string_equation
+
     def __linear_basic_solver(self, sub_string: str):
         """
         Recursive function for solving simple equation expressions (substituted)
@@ -210,7 +248,7 @@ class LinearSolver(OperatorFunction):
                         current_ans = operator_function(value, target)
                         final_string = sub_string[:index-len_operation] + \
                             str(current_ans)+sub_string[index:]
-                        return self.linear_simple_solver(final_string)
+                        return self.__linear_basic_solver(final_string)
                     except ValueError:
                         power_bracket = False
                         # Non-Solvable Terms, skipping to next Equal Level Term
@@ -226,39 +264,68 @@ class LinearSolver(OperatorFunction):
     def __linear_complementary_solver(self, string_equation: str):
         """
         Function that solve neighbouring terms
-        e.g. "2 + 3 + c" returns "5 + c"
+        e.g. "2 + 3 + c + 2 - 3" returns "5 + c - 1"
         """
-        string_function = self.__linear_strip_trimming(string_equation)
+        string_equation = self.__linear_strip_trimming(string_equation)
+        string_equation = self.__linear_string_trimming(string_equation)
 
-        low_prior_value = min(list(self.primary_priority.values()))
-        for key, item in self.primary_priority.items():
-            if item != low_prior_value:
-                continue
-            string_split = string_function.split(key)
-            base = key
-            for index in range(len(string_split)):
-                string = string_split[index]
-                try:
-                    if string_split[index-1][-1] in self.primary_priority.keys():
-                        # operation followed by sign number
-                        continue
-                except IndexError:
-                    pass
-                current_string = base + string
-                current_ans = self.__linear_basic_solver(current_string)
-                if current_ans[0] == "(" and current_ans[-1] == ")":
-                    if base != key:
-                        base = base.rstrip(key)
-                        string_equation = string_equation.replace(
-                            base, stored_ans)
-                        base = key
-                else:
-                    stored_ans = key + \
-                        current_ans if current_ans[0] != "-" else current_ans
-                    base += string + key
-            if base != key and stored_ans:
-                string_equation = string_equation.replace(
-                    base.rstrip(key), stored_ans)
+        scan_regex = "(|\-|\+)(\d+\.\d+|\d+\.|\.\d+|\d+)"
+        primary_list = list(self.primary_priority.keys())
+        removed_list = []
+        min_level = int(min(self.primary_priority.values()))
+        for item in primary_list:
+            try:
+                if self.primary_priority[item] == min_level:
+                    removed_list.append(item)
+            except KeyError:
+                pass
+        for item in removed_list:
+            primary_list.remove(item)
+        complementary_check_list = primary_list + \
+            list(self.secondary_priority.keys()) + self.indicator
+        term = ""
+        start_index = 0
+        replace_list = []
+        for index in range(len(string_equation)):
+            character = string_equation[index]
+            if character in complementary_check_list or character.isalpha():
+                if term:
+                    if start_index != 0:
+                        # Scan Previous Instance
+                        if string_equation[start_index-1] in primary_list:
+                            if re.search(scan_regex, term):
+                                # Remove First Term
+                                first_term = re.search(scan_regex, term)[0]
+                                start_index += len(first_term)
+                                term = term[len(first_term):]
+
+                        # Scan Later Instance
+                        if character in primary_list:
+                            # Remove Last Term
+                            if re.search(scan_regex+"$", term):
+                                last_term = re.search(scan_regex+"$", term)[0]
+                                term = term[:-len(last_term)]
+                    if term:
+                        # Check Term Sign
+                        if term[-1] in removed_list:
+                            term = term[:-1]
+                        answer = self.__linear_basic_solver(term)
+                        answer = f"+{answer}" if answer[0] != "-" else answer
+                        replace_list.append([start_index, term, answer])
+                        term = ""
+                        start_index = index
+            else:
+                if not term:
+                    start_index = index
+                term += character
+
+        offset = 0
+        for start, term, answer in replace_list:
+            new_index = start - offset
+            string_equation = string_equation[:new_index] + \
+                answer+string_equation[new_index+len(term):]
+            offset += len(term) - len(answer)
+        string_equation = self.__linear_basic_solver(string_equation)
         return string_equation
 
     def __linear_index_substring_split(self, sub_string: str, sign: str):
@@ -349,7 +416,7 @@ class LinearSolver(OperatorFunction):
         self.results[target_variable] = float(value_side)
         return float(value_side)
 
-    def __linear_move_inverse_terms(self, primary_level_dict: dict, secondary_level_dict: dict, var_side: str, value_side: str, handle_level: int):
+    def __linear_move_inverse_terms(self, ori_primary_level_dict: dict, ori_secondary_level_dict: dict, var_side: str, value_side: str, handle_level: int):
         """
         Perform Inverse of Operations to Value Side
         e.g. "sin(...) = 1" yields "...  = asin(1)"
@@ -357,6 +424,9 @@ class LinearSolver(OperatorFunction):
         Primary Operators are prioritised over Special Functions
         Lower Priority Operators will be Prioritised e.g. "*"(priority: 1) or "/"(priority: 1) > "^" (priority: 2)
         """
+        primary_level_dict = copy.deepcopy(ori_primary_level_dict)
+        secondary_level_dict = copy.deepcopy(ori_secondary_level_dict)
+
         if handle_level in primary_level_dict.keys():
             priority_keys = sorted(
                 list(primary_level_dict[handle_level].keys()))
@@ -628,34 +698,37 @@ class LinearSolver(OperatorFunction):
                     priority += self.secondary_priority[character]
         return sub_index_dict
 
-    def __linear_special_operator_value(self, orig_sub_dict: dict, sub_expression: str):
+    # NEED FIX REGEX
+    def __linear_special_operator_value(self, sub_expression: str, ori_sub_dict: dict):
         """
         Function to execute Special Operations
         e.g. log10(10) returns 1
         Operation with variables defined in it will be ignored
         """
+        sub_dict = copy.deepcopy(ori_sub_dict)
         primary_regex = "\)|\(|$|"
         for primary_operator in self.primary_priority:
             primary_regex += f"\{primary_operator}|"
         primary_regex = primary_regex[:-1]
         for special_operator in self.special_operator:
             if re.search(f"{special_operator}[0-9]", sub_expression):
-                filter_regex = f"{special_operator}(.*?)({primary_regex})"
+                filter_regex = f"(?<![a-z]){special_operator}(.*?)({primary_regex})"
                 filter_regex = re.compile(filter_regex)
                 for match in re.findall(filter_regex, sub_expression):
                     if match[0]:
                         special_function = self.special_to_function[special_operator]
                         special_ans = str(special_function(match[0]))
-                        orig_sub_dict[special_operator +
-                                      match[0]] = special_ans
+                        sub_dict[special_operator +
+                                 match[0]] = special_ans
                         sub_expression = sub_expression.replace(special_operator +
                                                                 match[0], special_ans)
-        return orig_sub_dict, sub_expression
+        return sub_expression, sub_dict
 
-    def __linear_variable_substitution(self, string_equation: str, sub_index_dict: dict):
+    def __linear_variable_substitution(self, string_equation: str, ori_sub_index_dict: dict):
         """
         Function to Substitute Defined Variables into Equation
         """
+        sub_index_dict = copy.deepcopy(ori_sub_index_dict)
         orig_sub_dict = {}
         for _, value in sorted(sub_index_dict.items(), reverse=True):
             pairs = [value[2*ind:2*ind+2] for ind in range(int(len(value)/2))]
@@ -664,8 +737,8 @@ class LinearSolver(OperatorFunction):
                 for key_sub, value_sub in orig_sub_dict.items():
                     sub_expression = sub_expression.replace(
                         key_sub, value_sub)
-                orig_sub_dict, sub_expression = self.__linear_special_operator_value(
-                    orig_sub_dict, sub_expression)
+                sub_expression, orig_sub_dict = self.__linear_special_operator_value(
+                    sub_expression, orig_sub_dict)
                 final_sub = self.linear_simple_solver(
                     self.__linear_strip_trimming(sub_expression))
                 try:
