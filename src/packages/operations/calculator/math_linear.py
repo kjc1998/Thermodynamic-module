@@ -310,6 +310,10 @@ class LinearSolver(OperatorFunction):
                         if term[-1] in removed_list:
                             term = term[:-1]
                         if term:
+                            # Check Variable With Number Assinged to It
+                            if start_index != 0:
+                                if string_equation[start_index-1].isalpha():
+                                    continue
                             answer = self.__linear_basic_solver(term)
                             answer = f"+{answer}" if answer[0] != "-" else answer
                             replace_list.append([start_index, term, answer])
@@ -760,25 +764,9 @@ class LinearSolver(OperatorFunction):
         self.log += string_equation + "\n"
 
 
-test_one = LinearSolver(
-    "1-1-1-1-1-11+2+10/10-2^3")
-test_one.linear_get_log()
-
-test_two = LinearSolver(
-    "+a*b^2 + ln(exp)*sin(pi/2)*sin((2^(3*(-1-1-1-11-2^4+2+c^2^2^2+3^2+2)))*exp*pi^(5/2)+((a/10)))*(-2^10) - pi^-(5/2) +-2^3= trial", a=10, b=10, trial=18)
-test_two.linear_get_log()
-
-test_three = LinearSolver("(-2)^3")
-test_three.linear_get_log()
-
-test_four = LinearSolver("-3.142^-2.5")
-test_four.linear_get_log()
-
-test_five = LinearSolver("ln(exp^2)*cos(a) = 1.5")
-test_five.linear_get_log()
-
-test_six = LinearSolver("ln(exp^2)*acos(0)*a*exp*pi = 1.5*exp*pi*atan(30)")
-test_six.linear_get_log()
-
-test_seven = LinearSolver("2^(-asin(a)) = 2")
+test_seven = LinearSolver("2^(-asin(p1p)) = 2")
 test_seven.linear_get_log()
+
+test_one = LinearSolver(
+    "1-1-1-1-1-11+2+(-c23)^(2^4) = 3")
+test_one.linear_get_log()
