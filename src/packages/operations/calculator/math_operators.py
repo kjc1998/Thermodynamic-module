@@ -38,7 +38,9 @@ class OperatorFunction():
             "+": "-",
             "-": "+",
             "*": "/",
-            "/": "*",
+            # Special Primary
+            "/": "/_term_target",
+            "^": "^_term_target",
             # Trigonometry Functions
             "sin": "asin",
             "asin": "sin",
@@ -46,7 +48,6 @@ class OperatorFunction():
             "acos": "cos",
             "tan": "atan",
             "atan": "tan",
-            "^": "^_target_1/term",  # special primary
             "sqrt": "^_target_2",
             "log10": "^_10_target",
             "ln": "^_exp_target",

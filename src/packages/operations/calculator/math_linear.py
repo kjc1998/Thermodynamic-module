@@ -456,22 +456,38 @@ class LinearSolver(OperatorFunction):
                         var_side = var_side[:end_index -
                                             len(term)-1] + self.indicator[0]*(len(term)+1) + var_side[end_index:]
                     else:
-                        # Power Inverse Operator (Special Treatment)
+                        # Power Inverse & Division Operators (Special Treatments)
                         flip_string = flip_operator.replace(
                             "target", value_side).replace("term", term)
-                        if before:
-                            # Resolved using Log
-                            value_side = self.inverse_log(term, value_side)
-                            var_side = var_side[:end_index -
-                                                len(term)] + self.indicator[0]*(len(term)+1) + var_side[end_index+1:]
-                        else:
-                            # Resolved using Inverse Power
-                            operation_key, ori, target = flip_string.split("_")
-                            target = self.linear_simple_solver(target)
-                            value_side = self.primary_to_function[operation_key](
-                                ori, target)
-                            var_side = var_side[:end_index -
-                                                len(term)-1] + self.indicator[0]*(len(term)+1) + var_side[end_index:]
+                        if flip_operator[0] == "^":
+                            if before:
+                                # Resolved using Log
+                                value_side = self.inverse_log(term, value_side)
+                                var_side = var_side[:end_index -
+                                                    len(term)] + self.indicator[0]*(len(term)+1) + var_side[end_index+1:]
+                            else:
+                                # Resolved using Inverse Power
+                                operation_key, ori, target = flip_string.split(
+                                    "_")
+                                target = self.linear_simple_solver(target)
+                                value_side = self.primary_to_function[operation_key](
+                                    ori, target)
+                                var_side = var_side[:end_index -
+                                                    len(term)-1] + self.indicator[0]*(len(term)+1) + var_side[end_index:]
+                        elif flip_operator[0] == "/":
+                            if before:
+                                # term/target
+                                value_side = self.linear_simple_solver(
+                                    f"{term}/{value_side}")
+                                var_side = var_side[:end_index -
+                                                    len(term)] + self.indicator[0]*(len(term)+1) + var_side[end_index+1:]
+                            else:
+                                # term*target
+                                value_side = self.linear_simple_solver(
+                                    f"{term}*{value_side}")
+                                var_side = var_side[:end_index -
+                                                    len(term)-1] + self.indicator[0]*(len(term)+1) + var_side[end_index:]
+
         else:
             # Special Bracket Operators
             term, index = secondary_level_dict[handle_level]
@@ -762,11 +778,3 @@ class LinearSolver(OperatorFunction):
         Tracking Steps Done in Solving Equation
         """
         self.log += string_equation + "\n"
-
-
-test_seven = LinearSolver("2^(-asin(p1p)) = 2")
-test_seven.linear_get_log()
-
-test_one = LinearSolver(
-    "1-1-1-1-1-11+2+(-c23)^(2^4) = 3")
-test_one.linear_get_log()
