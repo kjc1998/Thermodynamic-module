@@ -22,7 +22,7 @@ Mathematical operations were conducted based on priority level set as shown in t
 Special Constants & Functions : <br/>
 | Symbol | Descriptions | Type |
 | ----------- | --------------- | --- |
-| exp | Exponential | Constant |
+| exp | Euler's Number | Constant |
 | pi | π | Constant |
 | sin | Sine | Function |
 | cos | Cosine | Function |
