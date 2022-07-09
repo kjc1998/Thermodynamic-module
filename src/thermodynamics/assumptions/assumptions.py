@@ -27,7 +27,6 @@ class Assumptions(abc.ABC):
 class ParamDecorators:
     """
     Allowing decorators to take in arguments
-    If argument consist of callable object, then default to empty argument
     """
 
     def __init__(self, deco: "Assumptions"):
