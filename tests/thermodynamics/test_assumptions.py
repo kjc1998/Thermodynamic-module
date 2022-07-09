@@ -14,22 +14,17 @@ def func_mock():
 
 class TestAssumptions:
     def test_decorator(self):
-        """
-        Works for both:
-
-        1)  @ideal_gas
-            def ...
-
-        2)  @ideal_gas()
-            def ...
-        """
-
+        @assumptions.Assumptions.ideal_gas
         def fake_func():
             return []
 
+        @assumptions.Assumptions.ideal_gas()
+        def fake_func_two():
+            return []
+
         expected = [expression_solver.EquationFormat("P*V", "n*8.3145*T")]
-        o1 = assumptions.Assumptions.ideal_gas(fake_func)()
-        o2 = assumptions.Assumptions.ideal_gas()(fake_func)()
+        o1 = fake_func()
+        o2 = fake_func_two()
         assert expected == o1 == o2
 
     def test_ideal_gas(self, func_mock):
