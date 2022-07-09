@@ -1,25 +1,33 @@
 import abc
 import functools
-from typing import Callable
+from typing import Callable, Union, List
+from solver import expression_solver
+
+
+class AbstractDevice(abc.ABC):
+    @abc.abstractmethod
+    def __call__(self) -> List[expression_solver.EquationFormat]:
+        pass
 
 
 class Assumptions(abc.ABC):
     """
-    Decorators that can append equations
+    Decorators that can append list of equations
     """
 
     @abc.abstractmethod
-    def __init__(self, func):
+    def __init__(self, callable: Union["Assumptions", "AbstractDevice"]):
         pass
 
     @abc.abstractmethod
-    def __call__(self) -> Callable:
+    def __call__(self) -> List[expression_solver.EquationFormat]:
         pass
 
 
 class ParamDecorators:
     """
-    Allowing decorators to take in value arguments
+    Allowing decorators to take in arguments
+    If argument consist of callable object, then default to empty argument
     """
 
     def __init__(self, deco: "Assumptions"):
