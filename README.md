@@ -1,4 +1,4 @@
-# Mathematical Expression Solver
+# Thermodynamic Module
 
 ## Development Setup
 
