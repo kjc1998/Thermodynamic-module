@@ -1,10 +1,12 @@
 import functools
 from typing import Callable, Optional
+
 from solver import expression_solver
+
 from thermodynamics.assumptions import assumptions
 
 
-@assumptions.param_decorators
+@assumptions.ParamDecorators
 class IdealGas(assumptions.Assumptions):
     def __init__(
         self,

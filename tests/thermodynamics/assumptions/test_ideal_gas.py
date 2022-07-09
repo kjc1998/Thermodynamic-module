@@ -1,6 +1,8 @@
-import pytest
 from unittest import mock
+
+import pytest
 from solver import expression_solver
+
 from thermodynamics.assumptions import ideal_gas
 
 
